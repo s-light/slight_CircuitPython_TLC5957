@@ -9,8 +9,8 @@ Introduction
     :target: https://discord.gg/nBQh6qu
     :alt: Discord
 
-.. image:: https://travis-ci.org/s-light/Slight_CircuitPython_TLC5957.svg?branch=master
-    :target: https://travis-ci.org/s-light/Slight_CircuitPython_TLC5957
+.. image:: https://travis-ci.org/s-light/slight_CircuitPython_TLC5957.svg?branch=master
+    :target: https://travis-ci.org/s-light/slight_CircuitPython_TLC5957
     :alt: Build Status
 
 .. todo:: Describe what the library does.
@@ -35,7 +35,7 @@ Contributing
 ============
 
 Contributions are welcome! Please read our `Code of Conduct
-<https://github.com/s-light/Slight_CircuitPython_TLC5957/blob/master/CODE_OF_CONDUCT.md>`_
+<https://github.com/s-light/slight_CircuitPython_TLC5957/blob/master/CODE_OF_CONDUCT.md>`_
 before contributing to help this project stay welcoming.
 
 Building locally
