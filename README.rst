@@ -14,13 +14,16 @@ Introduction
     :alt: Build Status
 
 CircuitPython library for `TI TLC5957 48-channel 16bit LED-Driver <http://www.ti.com/product/TLC5957/>`_
-Setting of LED-Values / API is compatible with `fancyled <https://circuitpython.readthedocs.io/projects/fancyled/en/latest/>`_.
+
+Setting of LED-Values / API is similar to NeoPixel and Dotstar APIs and
+compatible with `fancyled <https://circuitpython.readthedocs.io/projects/fancyled/en/latest/>`_.
 
 Dependencies
 =============
 This driver depends on:
 
 * `Adafruit CircuitPython <https://github.com/adafruit/circuitpython>`_
+
 .. * `Register <https://github.com/adafruit/Adafruit_CircuitPython_Register>`_
 
 Please ensure all dependencies are available on the CircuitPython filesystem.
@@ -62,7 +65,7 @@ Usage Example
 
     tlc.show()
 
-more Documentation can be found at
+have a look at the other `examples <examples.html>`_
 
 Contributing
 ============

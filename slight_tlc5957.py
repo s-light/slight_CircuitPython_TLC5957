@@ -1,3 +1,5 @@
+"""TLC5958 circuitpython library."""
+
 # The MIT License (MIT)
 #
 # Copyright (c) 2018 Stefan Krüger
@@ -19,11 +21,13 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-"""
+
+u"""
 `slight_TLC5957`
 ====================================================
 
-.. todo:: Describe what the module does
+CircuitPython library for
+`TI TLC5957 48-channel 16bit LED-Driver <http://www.ti.com/product/TLC5957/>`_
 
 * Author(s): Stefan Krüger
 
@@ -32,18 +36,16 @@ Implementation Notes
 
 **Hardware:**
 
-.. todo:: Add links to any specific hardware product page(s), or category page(s). Use unordered list & hyperlink rST
-   inline format: "* `Link Text <url>`_"
+* `example PCB with TLC5957 and 4x4 SMD RGB LEDs
+<https://github.com/s-light/magic_amulet_pcbs/tree/master/LEDBoard_4x4_HD>`_
 
 **Software and Dependencies:**
 
 * Adafruit CircuitPython firmware for the supported boards:
   https://github.com/adafruit/circuitpython/releases
 
-.. todo:: Uncomment or remove the Bus Device and/or the Register library dependencies based on the library's use of either.
-
-# * Adafruit's Bus Device library: https://github.com/adafruit/Adafruit_CircuitPython_BusDevice
-# * Adafruit's Register library: https://github.com/adafruit/Adafruit_CircuitPython_Register
+# * Adafruit's Register library:
+# https://github.com/adafruit/Adafruit_CircuitPython_Register
 """
 
 # imports
