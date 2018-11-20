@@ -1,8 +1,10 @@
 Introduction
 ============
 
+..     :target: https://circuitpython.readthedocs.io/projects/tlc5957/en/latest/
+
 .. image:: https://readthedocs.org/projects/slight-circuitpython-tlc5957/badge/?version=latest
-    :target: https://circuitpython.readthedocs.io/projects/tlc5957/en/latest/
+    :target: https://slight-circuitpython-tlc5957.readthedocs.io/en/latest/
     :alt: Documentation Status
 
 .. image:: https://img.shields.io/discord/327254708534116352.svg
