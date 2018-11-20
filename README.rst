@@ -13,7 +13,8 @@ Introduction
     :target: https://travis-ci.org/s-light/slight_CircuitPython_TLC5957
     :alt: Build Status
 
-.. todo:: Describe what the library does.
+CircuitPython library for `TI TLC5957 48-channel 16bit LED-Driver <http://www.ti.com/product/TLC5957/>`_
+API is compatible with `fancyled <https://circuitpython.readthedocs.io/projects/fancyled/en/latest/>`_.
 
 Dependencies
 =============
@@ -30,6 +31,8 @@ Usage Example
 =============
 
 .. todo:: Add a quick, simple example. It and other examples should live in the examples folder and be included in docs/examples.rst.
+
+more Documentation can be found at 
 
 Contributing
 ============
