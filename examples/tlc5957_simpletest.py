@@ -46,8 +46,8 @@ pixels[0] = (1, 0.5, 0)
 # using 16bit integer values (0..65535)
 pixels[1] = (0, 32000, 65535)
 
+# write data to chips
+pixels.show()
+
 while True:
-    # write data to chips
-    pixels.show()
-    # wait a second
-    time.sleep(0.05)
+    pass
