@@ -1,7 +1,5 @@
 """Simple & Minimallistic example for the TLC5957 library."""
 
-import time
-
 import board
 # import busio
 import bitbangio
