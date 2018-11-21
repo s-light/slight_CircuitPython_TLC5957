@@ -206,7 +206,7 @@ class TLC5957:
 
     def __init__(
             self,
-            *, # noqa
+            # *,    # this forces all following parameter to be named
             spi,
             spi_clock,
             spi_mosi,
@@ -235,7 +235,6 @@ class TLC5957:
 
     def _write_buffer(self):
         # Write out the current state to the shift register.
-
         buffer_start = 0
         write_count = (
             (self.CHIP_SHIFT_BUFFER_BYTE_COUNT * self.chip_count)
@@ -248,10 +247,21 @@ class TLC5957:
                     pass
                 # configure
                 self._spi.configure(
-                    baudrate=(1 * 1000000), polarity=0, phase=0, bits=8)
+                    baudrate=(1 * 10000), polarity=0, phase=0, bits=8)
+                #    baudrate=(100 * 1000), polarity=0, phase=0, bits=8)
+
                 # write data
-                self._spi.write(
-                    self._buffer, start=buffer_start, end=write_count)
+                # self._spi.write(
+                #     self._buffer, start=buffer_start, end=write_count)
+
+                # workaround for bitbangio.SPI.write missing start & end
+                buffer_in = bytearray(write_count)
+                self._spi.write_readinto(
+                    self._buffer,
+                    buffer_in,
+                    out_start=buffer_start,
+                    out_end=buffer_start + write_count)
+
             finally:
                 # Ensure the SPI bus is unlocked.
                 self._spi.unlock()
