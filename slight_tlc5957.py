@@ -97,6 +97,7 @@ class TLC5957:
     ##########################################
 
     CHIP_LED_COUNT = 16
+    BUFFER_BYTES_PER_PIXEL = 6
     CHIP_SHIFT_BUFFER_BIT_COUNT = 48
     CHIP_SHIFT_BUFFER_BYTE_COUNT = CHIP_SHIFT_BUFFER_BIT_COUNT // 8
     CHIP_GS_BUFFER_BYTE_COUNT = CHIP_SHIFT_BUFFER_BYTE_COUNT * CHIP_LED_COUNT
@@ -223,15 +224,18 @@ class TLC5957:
         self._gsclk = gsclk
         # how many pixels are there?
         self.pixel_count = pixel_count
+        # print("pixel_count", self.pixel_count)
         # calculate how many chips are needed
         self.chip_count = self.pixel_count // self.CHIP_LED_COUNT
         if self.pixel_count % self.CHIP_LED_COUNT > 0:
             self.chip_count += 1
-        print("chip_count", self.chip_count)
+        # print("chip_count", self.chip_count)
+
         # data is stored in raw buffer
         self._buffer = bytearray(
             self.CHIP_GS_BUFFER_BYTE_COUNT * self.chip_count)
-        print("_buffer", self._buffer)
+        # print("CHIP_GS_BUFFER_BYTE_COUNT", self.CHIP_GS_BUFFER_BYTE_COUNT)
+        # print("_buffer", self._buffer)
 
     def _write_buffer(self):
         # Write out the current state to the shift register.
@@ -247,7 +251,7 @@ class TLC5957:
                     pass
                 # configure
                 self._spi.configure(
-                    baudrate=(1 * 10000), polarity=0, phase=0, bits=8)
+                    baudrate=(10 * 1000), polarity=0, phase=0, bits=8)
                 #    baudrate=(100 * 1000), polarity=0, phase=0, bits=8)
 
                 # write data
@@ -289,8 +293,9 @@ class TLC5957:
         self._spi_clock.value = 0
         self._spi_mosi.value = 0
         self._latch.value = 0
-        for value in range(self.CHIP_FUNCTION_COMMAND_BIT_COUNT):
-            if ((self.CHIP_LED_COUNT - function_command) == value):
+        latch_start_index = self.CHIP_LED_COUNT - function_command
+        for index in range(self.CHIP_FUNCTION_COMMAND_BIT_COUNT):
+            if latch_start_index == index:
                 self._latch.value = 1
 
             # b1000000000000000
@@ -300,9 +305,14 @@ class TLC5957:
                 self._spi_mosi.value = 0
             value <<= 1
 
+            # CircuitPython needs 14us for this setting pin high and low again.
             self._spi_clock.value = 1
+            # 1ms
+            # time.sleep(0.001)
+            # 100us
+            # time.sleep(0.0001)
             # 10us
-            time.sleep(0.00001)
+            # time.sleep(0.00001)
             self._spi_clock.value = 0
 
         self._latch.value = 0
@@ -354,10 +364,11 @@ class TLC5957:
         if 0 <= key < self.pixel_count:
             # print("value", value)
             assert len(value) == 3
+            # check if we have float values
             if (
-                isinstance(value[0], float) or
-                isinstance(value[1], float) or
-                isinstance(value[2], float)
+                isinstance(value[0], float)
+                or isinstance(value[1], float)
+                or isinstance(value[2], float)
             ):
                 # check if values are in range
                 assert 0 <= value[0] <= 1
@@ -374,10 +385,11 @@ class TLC5957:
             assert 0 <= value[1] <= 65535
             assert 0 <= value[2] <= 65535
             # update buffer
-            # print("key", key, "value", value)
-            self._set_16bit_value_in_buffer(key + 0, value[0])
-            self._set_16bit_value_in_buffer(key + 2, value[1])
-            self._set_16bit_value_in_buffer(key + 4, value[2])
+            print("key", key, "value", value)
+            buffer_pixel_start = key * self.BUFFER_BYTES_PER_PIXEL
+            self._set_16bit_value_in_buffer(buffer_pixel_start + 0, value[2])
+            self._set_16bit_value_in_buffer(buffer_pixel_start + 2, value[1])
+            self._set_16bit_value_in_buffer(buffer_pixel_start + 4, value[0])
         else:
             raise IndexError("index {} out of range".format(key))
 
