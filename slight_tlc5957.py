@@ -64,10 +64,10 @@ import time
 
 
 class TLC5957:
-    """Multi TLC5957 16-bit 48 channel LED PWM driver.
+    """TLC5957 16-bit 48 channel LED PWM driver.
 
     This chip is designed to drive 16 RGB LEDs with 16-bit PWM per Color.
-    The class has an interface compatible with the FancyLED.
+    The class has an interface compatible with FancyLED.
     and with this is similar to the NeoPixel and DotStar Interfaces.
 
     :param ~busio.SPI spi: An instance of the SPI bus connected to the chip.
@@ -75,8 +75,10 @@ class TLC5957:
         the MISO/input is currently unused.
         Maximal data clock frequence is:
             - TLC5957: 33MHz
-    :param ~digitalio.DigitalInOut LAT: The chip LAT (latch) pin object
+    :param ~digitalio.DigitalInOut latch: The chip LAT (latch) pin object
         that implements the DigitalInOut API.
+    :param ~pulseio.PWMOut gsclk: The chip Grayscale Clock pin object
+        that implements the PWMOut API.
     :param bool pixel_count: Number of RGB-LEDs (=Pixels) are connected.
     """
 
@@ -96,54 +98,56 @@ class TLC5957:
     CHIP_BUFFER_BIT_COUNT = 48
     CHIP_BUFFER_BYTE_COUNT = CHIP_BUFFER_BIT_COUNT // 8
 
-    # 3.10 Function Commands Summary (page 30)
-    # http:#www.ti.com/lit/ug/slvuaf0/slvuaf0.pdf#page=30&zoom=auto,-110,464
-    # WRTGS
-    #     48-bit GS data write
-    #     copy common 48bit to GS-data-latch[GS-counter]
-    #     GS-counter -1
-    # LATGS
-    #     latch grayscale
-    #     (768-bit GS data latch)
-    #     copy common 48bit to GS-data-latch[0]
-    #     if XREFRESH = 0
-    #         GS-data-latch copy to GS-data-latch 2
-    #     if XREFRESH = 1
-    #         GS-data-latch copy to GS-data-latch 2
-    # WRTFC
-    #     write FC data
-    #     copy common 48bit to FC-data
-    #     if used after FCWRTEN
-    # LINERESET
-    #     Line Counter register clear.
-    #     copy common 48bit to GS-data-latch[0]
-    #     data-latch-counter reset
-    #     if XREFRESH = 0
-    #         Autorefresh enabled
-    #         wehn GS-counter == 65535: GS-data-latch copy to GS-data-latch 2
-    #     if XREFRESH = 1
-    #         Autorefresh disabled
-    #         GS-data-latch copy to GS-data-latch 2
-    #         GS-counter reset
-    #         OUTx forced off
-    #     change group pattern when received
-    # READFC
-    #     read FC data
-    #     copy FC-data to common 48bit
-    #     (can be read at SOUT)
-    # TMGRST
-    #     reset line-counter
-    #     GS-counter = 0
-    #     OUTx forced off
-    # FCWRTEN
-    #     enable writes to FC
-    #     this must send before WRTFC
-
     # https://docs.python.org/3/library/enum.html#intenum
     # @unique
     # class function_command(IntEnum):
     class function_command(object):
-        """Enum for available function commands."""
+        """
+        Enum for available function commands.
+
+        3.10 Function Commands Summary (page 30)
+        http:#www.ti.com/lit/ug/slvuaf0/slvuaf0.pdf#page=30&zoom=auto,-110,464
+        WRTGS
+            48-bit GS data write
+            copy common 48bit to GS-data-latch[GS-counter]
+            GS-counter -1
+        LATGS
+            latch grayscale
+            (768-bit GS data latch)
+            copy common 48bit to GS-data-latch[0]
+            if XREFRESH = 0
+                GS-data-latch copy to GS-data-latch 2
+            if XREFRESH = 1
+                GS-data-latch copy to GS-data-latch 2
+        WRTFC
+            write FC data
+            copy common 48bit to FC-data
+            if used after FCWRTEN
+        LINERESET
+            Line Counter register clear.
+            copy common 48bit to GS-data-latch[0]
+            data-latch-counter reset
+            if XREFRESH = 0
+                Autorefresh enabled
+                wehn GS-counter == 65535: GS-data-latch copy to GS-data-latch 2
+            if XREFRESH = 1
+                Autorefresh disabled
+                GS-data-latch copy to GS-data-latch 2
+                GS-counter reset
+                OUTx forced off
+            change group pattern when received
+        READFC
+            read FC data
+            copy FC-data to common 48bit
+            (can be read at SOUT)
+        TMGRST
+            reset line-counter
+            GS-counter = 0
+            OUTx forced off
+        FCWRTEN
+            enable writes to FC
+            this must send before WRTFC
+        """
 
         WRTGS = 1
         LATGS = 3
@@ -154,65 +158,44 @@ class TLC5957:
         FCWRTEN = 15
 
     ##########################################
-    # 3.3.3 Function Control (FC) Register
-    # BIT     NAME            default     description
-    # 0-1     LODVTH          01          LED Open Detection Voltage
-    # 2-3     SEL_TD0         01          TD0 select. SOUT hold time.
-    # 4       SEL_GDLY        1           Group Delay. 0 = No Delay
-    # 5       XREFRESH        0           auto data refresh mode.
-    #                                     on LATGS/LINERESET → data copied
-    #                                       from GS1 to GS2
-    #                                     0 = enabled → GS-counter continues
-    #                                     1 = disabled → GS-counter reset;
-    #                                       OUTx forced off
-    # 6       SEL_GCK_EDGE    0           GCLK edge select.
-    #                                     0 = OUTx toggle only on
-    #                                       rising edge of GLCK
-    #                                     1 = OUTx toggle on
-    #                                       rising & falling edge of GLCK
-    # 7       SEL_PCHG        0           Pre-charge working mode select
-    # 8       ESPWM           0           ESPWM mode enable bit.
-    #                                       (0 = enabled, 1 = disabled)
-    # 9       LGSE3           0           Compensation for Blue LED.
-    #                                       (0 = disabled, 1 = enabled)
-    # 10      SEL_SCK_EDGE    0           SCLK edge select
-    #                                       (0 = rising edge, 1 = both edges)
-    # 11-13   LGSE1           000         Low Gray Scale Enhancement for
-    #                                       Red/Green/Blue color
-    # 14-22   CCB             100000000   Color brightness control data Blue
-    #                                       (000h-1FFh)
-    # 23-31   CCG             100000000   Color brightness control data Green
-    #                                       (000h-1FFh)
-    # 32-40   CCR             100000000   Color brightness control data Red
-    #                                       (000h-1FFh)
-    # 41-43   BC              100         Global brightness control data
-    #                                       (0h-7h)
-    # 44      PokerTransMode  0           Poker trans mode enable bit.
-    #                                       (0 = disabled, 1 = enabled)
-    # 45-47   LGSE2           000         first line performance improvment
-
-    ##########################################
-    # class _GS_Value:
-    #     # Internal decorator to simplify exposing each 16-bit LED PWM channel
-    #     # These will get/set the appropriate bytes in the shift register with
-    #     # the specified values.
-    #
-    #     def __init__(self, byte_offset):
-    #         # Keep track of the byte within the shift register where this
-    #         # 16-bit value starts.  Luckily these are all aligned on byte
-    #         # boundaries.  Note the byte order is big endian (MSB first).
-    #         self._byte_offset = byte_offset
-    #
-    #     def __get__(self, obj, obj_type):
-    #         # Grab the 16-bit value at the offset for this channel.
-    #         return (obj._buffer[self._byte_offset] << 8) | \
-    #                 obj._buffer[self._byte_offset+1]
-    #
-    #     def __set__(self, obj, val):
-    #         # Set the 16-bit value at the offset for this channel.
-    #         assert 0 <= val <= 65535
-    #         obj._buffer[self._byte_offset] = (val >> 8) & 0xFF
-    #         obj._buffer[self._byte_offset+1] = val & 0xFF
+    """
+    3.3.3 Function Control (FC) Register
+    BIT     NAME            default     description
+    0-1     LODVTH          01          LED Open Detection Voltage
+    2-3     SEL_TD0         01          TD0 select. SOUT hold time.
+    4       SEL_GDLY        1           Group Delay. 0 = No Delay
+    5       XREFRESH        0           auto data refresh mode.
+                                        on LATGS/LINERESET → data copied
+                                          from GS1 to GS2
+                                        0 = enabled → GS-counter continues
+                                        1 = disabled → GS-counter reset;
+                                          OUTx forced off
+    6       SEL_GCK_EDGE    0           GCLK edge select.
+                                        0 = OUTx toggle only on
+                                          rising edge of GLCK
+                                        1 = OUTx toggle on
+                                          rising & falling edge of GLCK
+    7       SEL_PCHG        0           Pre-charge working mode select
+    8       ESPWM           0           ESPWM mode enable bit.
+                                          (0 = enabled, 1 = disabled)
+    9       LGSE3           0           Compensation for Blue LED.
+                                          (0 = disabled, 1 = enabled)
+    10      SEL_SCK_EDGE    0           SCLK edge select
+                                          (0 = rising edge, 1 = both edges)
+    11-13   LGSE1           000         Low Gray Scale Enhancement for
+                                          Red/Green/Blue color
+    14-22   CCB             100000000   Color brightness control data Blue
+                                          (000h-1FFh)
+    23-31   CCG             100000000   Color brightness control data Green
+                                          (000h-1FFh)
+    32-40   CCR             100000000   Color brightness control data Red
+                                          (000h-1FFh)
+    41-43   BC              100         Global brightness control data
+                                          (0h-7h)
+    44      PokerTransMode  0           Poker trans mode enable bit.
+                                          (0 = disabled, 1 = enabled)
+    45-47   LGSE2           000         first line performance improvment
+    """
 
     ##########################################
 
@@ -226,13 +209,9 @@ class TLC5957:
         # calculate how many chips are connected
         self.chip_count = self.pixel_count // 16
 
-        # This device is just a big 48 byte long shift register
-        # without any fancy update protocol.
-        # Blast out all the bits to update, that's it!
-        # create raw output data
+        # data is stored in raw buffer
         self._buffer = bytearray(
             self.CHIP_BUFFER_BYTE_COUNT * self.chip_count)
-        # self._buffer = _GS_Value
 
     def _write_buffer(self):
         # Write out the current state to the shift register.
@@ -268,7 +247,7 @@ class TLC5957:
         function_command,
         buffer_start
     ):
-        """Bit-Banging SPI write to sync latch pulse."""
+        """Bit-Banging SPI write to sync with latch pulse."""
         value = (
             (self._buffer[buffer_start + 0] << 8) |
             self._buffer[buffer_start + 1]
