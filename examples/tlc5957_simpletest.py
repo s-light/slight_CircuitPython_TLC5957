@@ -21,10 +21,8 @@ spi_miso.direction = digitalio.Direction.INPUT
 # spi = busio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
 spi = bitbangio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
 
-# on the ItsyBitsy M4 EXPRESS on pin D9 the maximum frequency is about 6MHz?!
 gsclk = pulseio.PWMOut(
     board.D9, duty_cycle=(2 ** 15), frequency=(6000 * 1000))
-print("gsclk.frequency: {:}MHz".format(gsclk.frequency / (1000*1000)))
 
 latch = digitalio.DigitalInOut(board.D7)
 latch.direction = digitalio.Direction.OUTPUT

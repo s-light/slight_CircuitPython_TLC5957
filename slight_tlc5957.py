@@ -319,7 +319,7 @@ class TLC5957:
 
     def _set_16bit_value_in_buffer(self, buffer_start, value):
         assert 0 <= value <= 65535
-        print("buffer_start", buffer_start, "value", value)
+        # print("buffer_start", buffer_start, "value", value)
         self._buffer[buffer_start + 0] = (value >> 8) & 0xFF
         self._buffer[buffer_start + 1] = value & 0xFF
 
