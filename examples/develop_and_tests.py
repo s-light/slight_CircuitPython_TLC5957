@@ -95,22 +95,46 @@ print("pixels._buffer", pixels._buffer)
 
 
 ##########################################
-print(42 * '*')
-print("show")
-pixels.show()
-print("sleep 10s")
-time.sleep(10)
-print("show")
-pixels.show()
-print("sleep 10s")
-time.sleep(10)
+# print(42 * '*')
+# print("show")
+# pixels.show()
+# print("sleep 1s")
+# time.sleep(1)
+# print("show")
+# pixels.show()
+# print("sleep 5s")
+# time.sleep(5)
 
 ##########################################
 print(42 * '*')
 print("loop..")
+# while True:
+#     pass
+# color = (0.0, 0.0, 0.00002)
+color = (0, 0, 1)
+last_time = time.monotonic()
+loop_count = 0
 while True:
-    pass
-#     # write data to chips
-#     pixels.show()
+    loop_count += 1
+    color = (0, 0, color[2] + 1000)
+    if color[2] > 65000:
+        duration = time.monotonic() - last_time
+        print(
+            "duration: {} for {} loops.\n"
+            "\t{:.2f}ms per loop"
+            "".format(
+                duration,
+                loop_count,
+                (duration/loop_count)*1000
+            )
+        )
+        # reset
+        color = (0, 0, 0)
+        last_time = time.monotonic()
+        loop_count = 0
+    for index in range(num_leds):
+        pixels[index] = color
+    # write data to chips
+    pixels.show()
 #     # wait a second
 #     time.sleep(0.01)

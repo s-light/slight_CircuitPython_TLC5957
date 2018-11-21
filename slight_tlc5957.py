@@ -385,7 +385,7 @@ class TLC5957:
             assert 0 <= value[1] <= 65535
             assert 0 <= value[2] <= 65535
             # update buffer
-            print("key", key, "value", value)
+            # print("key", key, "value", value)
             buffer_pixel_start = key * self.BUFFER_BYTES_PER_PIXEL
             self._set_16bit_value_in_buffer(buffer_pixel_start + 0, value[2])
             self._set_16bit_value_in_buffer(buffer_pixel_start + 2, value[1])
