@@ -116,11 +116,11 @@ last_time = time.monotonic()
 loop_count = 0
 while True:
     loop_count += 1
-    color = (0, 0, color[2] + 1000)
+    color = (0, 0, color[2] + 500)
     if color[2] > 65000:
         duration = time.monotonic() - last_time
         print(
-            "duration: {} for {} loops.\n"
+            "duration: {}s for {} loops.\n"
             "\t{:.2f}ms per loop"
             "".format(
                 duration,

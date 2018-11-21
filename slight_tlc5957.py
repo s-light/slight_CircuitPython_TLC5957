@@ -250,9 +250,14 @@ class TLC5957:
                 while not self._spi.try_lock():
                     pass
                 # configure
+                # 10kHz
+                # baudrate = (10 * 1000)
+                # 1MHz
+                # baudrate = (1000 * 1000)
+                # 10MHz
+                baudrate = (10 * 1000 * 1000)
                 self._spi.configure(
-                    baudrate=(10 * 1000), polarity=0, phase=0, bits=8)
-                #    baudrate=(100 * 1000), polarity=0, phase=0, bits=8)
+                    baudrate=baudrate, polarity=0, phase=0, bits=8)
 
                 # write data
                 # self._spi.write(
