@@ -58,7 +58,7 @@ __repo__ = "https://github.com/s-light/slight_CircuitPython_TLC5957.git"
 
 # imports
 
-import time
+# import time
 
 # from enum import Enum, unique
 # https://docs.python.org/3/library/enum.html
@@ -97,6 +97,7 @@ class TLC5957:
     ##########################################
 
     CHIP_LED_COUNT = 16
+    COLORS_PER_PIXEL = 3
     BUFFER_BYTES_PER_PIXEL = 6
     CHIP_SHIFT_BUFFER_BIT_COUNT = 48
     CHIP_SHIFT_BUFFER_BYTE_COUNT = CHIP_SHIFT_BUFFER_BIT_COUNT // 8
@@ -230,6 +231,7 @@ class TLC5957:
         if self.pixel_count % self.CHIP_LED_COUNT > 0:
             self.chip_count += 1
         # print("chip_count", self.chip_count)
+        self.channel_count = self.pixel_count * self.COLORS_PER_PIXEL
 
         # data is stored in raw buffer
         self._buffer = bytearray(
@@ -325,6 +327,26 @@ class TLC5957:
     def show(self):
         """Write out Grayscale Values to chips."""
         self._write_buffer()
+
+    def set_channel(self, channel_index, value):
+        """
+        Set the value for the provided channel.
+
+        :param int channel_index: 0..(pixel_count *3)
+        :param int value: 0..65535
+        """
+        if 0 <= channel_index < (self.channel_count):
+            # check if values are in range
+            assert 0 <= value <= 65535
+            channel_index *= 2
+            self._set_16bit_value_in_buffer(channel_index, value)
+        else:
+            raise IndexError(
+                "channel_index {} out of range (0..{})".format(
+                    channel_index,
+                    self.channel_count
+                )
+            )
 
     def _get_16bit_value_from_buffer(self, buffer_start):
         return (

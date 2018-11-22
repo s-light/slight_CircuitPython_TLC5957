@@ -70,12 +70,11 @@ print("chip_count", pixels.chip_count)
 print(42 * '*')
 print("set colors")
 for index in range(num_leds):
-    # pixels[index] = (0.1, 0.1, 0.1)
-    # float 0.00002 → int 00001
-    pixels[index] = (0.0, 0.0, 0.00002)
-    # pixels[index] = (1, 1, 1)
-
-print("pixels._buffer", pixels._buffer)
+    pixels[index] = (1, 1, 1)
+# write data to chips
+pixels.show()
+# wait a second
+time.sleep(0.5)
 
 ##########################################
 print(42 * '*')
@@ -84,13 +83,12 @@ value_high = 5000
 value_low = 1
 while True:
     pixel_active_index = 0
-    for index in range(num_leds*3):
+    for index in range(pixels.channel_count):
         if index == pixel_active_index:
-            buffer_start = index * 2
-            pixels._set_16bit_value_in_buffer(buffer_start, value_high)
-            pixels._set_16bit_value_in_buffer(buffer_start-2, value_low)
+            pixels.set_channel(index, value_high)
+            pixels.set_channel((index - 1) % pixels.channel_count, value_low)
         pixel_active_index += 1
         # write data to chips
         pixels.show()
         # wait a second
-        time.sleep(1)
+        time.sleep(0.5)
