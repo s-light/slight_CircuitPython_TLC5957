@@ -98,7 +98,8 @@ class TLC5957:
 
     CHIP_LED_COUNT = 16
     COLORS_PER_PIXEL = 3
-    BUFFER_BYTES_PER_PIXEL = 6
+    BUFFER_BYTES_PER_COLORS = 2
+    BUFFER_BYTES_PER_PIXEL = BUFFER_BYTES_PER_COLORS * COLORS_PER_PIXEL
     CHIP_SHIFT_BUFFER_BIT_COUNT = 48
     CHIP_SHIFT_BUFFER_BYTE_COUNT = CHIP_SHIFT_BUFFER_BIT_COUNT // 8
     CHIP_GS_BUFFER_BYTE_COUNT = CHIP_SHIFT_BUFFER_BYTE_COUNT * CHIP_LED_COUNT
@@ -338,8 +339,11 @@ class TLC5957:
         if 0 <= channel_index < (self.channel_count):
             # check if values are in range
             assert 0 <= value <= 65535
-            channel_index *= 2
+            channel_index *= self.BUFFER_BYTES_PER_COLORS
             self._set_16bit_value_in_buffer(channel_index, value)
+            # TODO(s-light): invert color order for channel access
+            # self._set_16bit_value_in_buffer(
+            #     self.COLORS_PER_PIXEL - channel_index, value)
         else:
             raise IndexError(
                 "channel_index {} out of range (0..{})".format(
@@ -414,9 +418,15 @@ class TLC5957:
             # update buffer
             # print("key", key, "value", value)
             buffer_pixel_start = key * self.BUFFER_BYTES_PER_PIXEL
-            self._set_16bit_value_in_buffer(buffer_pixel_start + 0, value[2])
-            self._set_16bit_value_in_buffer(buffer_pixel_start + 2, value[1])
-            self._set_16bit_value_in_buffer(buffer_pixel_start + 4, value[0])
+            self._set_16bit_value_in_buffer(
+                buffer_pixel_start + (0 * self.BUFFER_BYTES_PER_COLORS),
+                value[2])
+            self._set_16bit_value_in_buffer(
+                buffer_pixel_start + (1 * self.BUFFER_BYTES_PER_COLORS),
+                value[1])
+            self._set_16bit_value_in_buffer(
+                buffer_pixel_start + (2 * self.BUFFER_BYTES_PER_COLORS),
+                value[0])
         else:
             raise IndexError("index {} out of range".format(key))
 

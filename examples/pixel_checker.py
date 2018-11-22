@@ -65,6 +65,7 @@ pixels = slight_tlc5957.TLC5957(
 
 print("pixel_count", pixels.pixel_count)
 print("chip_count", pixels.chip_count)
+print("channel_count", pixels.channel_count)
 
 ##########################################
 print(42 * '*')
@@ -73,8 +74,7 @@ for index in range(num_leds):
     pixels[index] = (1, 1, 1)
 # write data to chips
 pixels.show()
-# wait a second
-time.sleep(0.5)
+time.sleep(2)
 
 ##########################################
 print(42 * '*')
