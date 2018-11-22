@@ -43,7 +43,6 @@ spi = bitbangio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
 
 # on the ItsyBitsy M4 EXPRESS on pin D9 the maximum frequency is about 6MHz?!
 gsclk_freqency = (6000 * 1000)  # 6MHz
-# gsclk_freqency = (2 * 1000)  # 2kHz
 gsclk = pulseio.PWMOut(
     board.D9, duty_cycle=(2 ** 15), frequency=gsclk_freqency)
 print("gsclk.frequency: {:}MHz".format(gsclk.frequency / (1000*1000)))
@@ -87,7 +86,9 @@ while True:
     pixel_active_index = 0
     for index in range(num_leds*3):
         if index == pixel_active_index:
-            pixels._set_16bit_value_in_buffer(index, value_high)
+            buffer_start = index * 2
+            pixels._set_16bit_value_in_buffer(buffer_start, value_high)
+            pixels._set_16bit_value_in_buffer(buffer_start-2, value_low)
         pixel_active_index += 1
         # write data to chips
         pixels.show()
