@@ -95,16 +95,42 @@ print("pixels._buffer", pixels._buffer)
 
 
 ##########################################
-# print(42 * '*')
-# print("show")
-# pixels.show()
-# print("sleep 1s")
-# time.sleep(1)
-# print("show")
-# pixels.show()
-# print("sleep 5s")
-# time.sleep(5)
+print(42 * '*')
+print("time meassurement:")
+loop_count = 100
+duration = 0
+start_time = time.monotonic()
+for index in range(loop_count):
+    pixels.show()
+end_time = time.monotonic()
+duration = end_time - start_time
+print(
+    "'pixels.show()'"
+    "duration: {}s for {} loops.\n"
+    "\t{:.2f}ms per loop"
+    "".format(
+        duration,
+        loop_count,
+        (duration/loop_count)*1000
+    )
+)
 
+duration = 0
+for index in range(loop_count):
+    start_time = time.monotonic()
+    pixels.show()
+    end_time = time.monotonic()
+    duration += end_time - start_time
+print(
+    "'pixels.show()'"
+    "duration: {}s for {} loops.\n"
+    "\t{:.2f}ms per loop"
+    "".format(
+        duration,
+        loop_count,
+        (duration/loop_count)*1000
+    )
+)
 ##########################################
 print(42 * '*')
 print("loop..")
