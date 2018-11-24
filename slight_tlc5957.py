@@ -333,15 +333,23 @@ class TLC5957:
         """
         Set the value for the provided channel.
 
-        :param int channel_index: 0..(pixel_count *3)
+        :param int channel_index: 0..(pixel_count * 3)
         :param int value: 0..65535
         """
         if 0 <= channel_index < (self.channel_count):
             # check if values are in range
             assert 0 <= value <= 65535
-            channel_index *= self.BUFFER_BYTES_PER_COLORS
-            self._set_16bit_value_in_buffer(channel_index, value)
-            # TODO(s-light): invert color order for channel access
+            # temp = channel_index
+            # we change channel order here:
+            # buffer channel order is blue, green, red
+            pixel_index_offset = channel_index % self.COLORS_PER_PIXEL
+            if pixel_index_offset is 0:
+                channel_index += 2
+            if pixel_index_offset is 2:
+                channel_index -= 2
+            # print("{:>2} → {:>2}".format(temp, channel_index))
+            buffer_index = channel_index * self.BUFFER_BYTES_PER_COLORS
+            self._set_16bit_value_in_buffer(buffer_index, value)
             # self._set_16bit_value_in_buffer(
             #     self.COLORS_PER_PIXEL - channel_index, value)
         else:
@@ -363,6 +371,19 @@ class TLC5957:
         # print("buffer_start", buffer_start, "value", value)
         self._buffer[buffer_start + 0] = (value >> 8) & 0xFF
         self._buffer[buffer_start + 1] = value & 0xFF
+
+    def convert_01_float_to_16bit_integer(self, value):
+        """Convert 0..1 Float Value to 16bit (0..65535) Range."""
+        # check if values are in range
+        assert 0 <= value <= 1
+        # convert to 16bit value
+        return int(value * 65535)
+
+    def convert_if_float(self, value):
+        """Convert if value is Float."""
+        if (isinstance(value, float)):
+            value = self.convert_01_float_to_16bit_integer(value)
+        return value
 
     # Define index and length properties to set and get each channel as
     # atomic RGB tuples.  This provides a similar feel as using neopixels.
@@ -389,34 +410,33 @@ class TLC5957:
         """
         Set the R, G, B values for the provided channel.
 
-        Specify a 3-tuple of R, G, B values that are each 16-bit numbers
-        (0-65535).
+        Specify a 3-tuple of R, G, B values that are each
+        - 16-bit numbers (0-65535)
+        - or 0..1 floats
         """
         if 0 <= key < self.pixel_count:
             # print("value", value)
+            # convert to list
+            value = list(value)
+            # print("value", value)
+            # print("rep:")
+            # repr(value)
+            # print("check length..")
             assert len(value) == 3
             # check if we have float values
-            if (
-                isinstance(value[0], float)
-                or isinstance(value[1], float)
-                or isinstance(value[2], float)
-            ):
-                # check if values are in range
-                assert 0 <= value[0] <= 1
-                assert 0 <= value[1] <= 1
-                assert 0 <= value[2] <= 1
-                # convert to 16bit value
-                value = (
-                    int(value[0] * 65535),
-                    int(value[1] * 65535),
-                    int(value[2] * 65535)
-                )
+            value[0] = self.convert_if_float(value[0])
+            value[1] = self.convert_if_float(value[1])
+            value[2] = self.convert_if_float(value[2])
+            print("value", value)
+
             # check if values are in range
             assert 0 <= value[0] <= 65535
             assert 0 <= value[1] <= 65535
             assert 0 <= value[2] <= 65535
             # update buffer
             # print("key", key, "value", value)
+            # we change channel order here:
+            # buffer channel order is blue, green, red
             buffer_pixel_start = key * self.BUFFER_BYTES_PER_PIXEL
             self._set_16bit_value_in_buffer(
                 buffer_pixel_start + (0 * self.BUFFER_BYTES_PER_COLORS),

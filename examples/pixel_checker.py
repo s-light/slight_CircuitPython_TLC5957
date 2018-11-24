@@ -67,6 +67,7 @@ print("pixel_count", pixels.pixel_count)
 print("chip_count", pixels.chip_count)
 print("channel_count", pixels.channel_count)
 
+
 ##########################################
 print(42 * '*')
 print("set colors")
