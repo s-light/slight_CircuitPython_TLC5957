@@ -388,7 +388,7 @@ class TLC5957:
     # Define index and length properties to set and get each channel as
     # atomic RGB tuples.  This provides a similar feel as using neopixels.
     def __len__(self):
-        """Retrieve TLC5975the total number of Pixels available."""
+        """Retrieve TLC5975 the total number of Pixels available."""
         return self.pixel_count
 
     def __getitem__(self, key):
@@ -427,7 +427,7 @@ class TLC5957:
             value[0] = self.convert_if_float(value[0])
             value[1] = self.convert_if_float(value[1])
             value[2] = self.convert_if_float(value[2])
-            print("value", value)
+            # print("value", value)
 
             # check if values are in range
             assert 0 <= value[0] <= 65535
