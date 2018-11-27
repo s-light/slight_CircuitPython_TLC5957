@@ -96,7 +96,7 @@ while True:
         # Load each pixel's color from the palette using an offset, run it
         # through the gamma function, pack RGB value and assign to pixel.
         color = fancyled.palette_lookup(palette, offset + i / num_leds)
-        # color = fancyled.gamma_adjust(color, brightness=0.25)
+        color = fancyled.gamma_adjust(color, brightness=0.01)
         pixels[i] = color
     pixels.show()
 
