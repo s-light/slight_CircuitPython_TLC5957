@@ -75,12 +75,12 @@ for index in range(num_leds):
     pixels[index] = (1, 1, 1)
 # write data to chips
 pixels.show()
-time.sleep(2)
+time.sleep(10)
 
 ##########################################
 print(42 * '*')
 print("loop..")
-value_high = 5000
+value_high = 1000
 value_low = 1
 while True:
     pixel_active_index = 0
@@ -93,3 +93,9 @@ while True:
         pixels.show()
         # wait a second
         time.sleep(0.5)
+    # set all to minimal
+    for index in range(num_leds):
+        pixels[index] = (value_low, value_low, value_low)
+    # write data to chips
+    pixels.show()
+    time.sleep(2)
