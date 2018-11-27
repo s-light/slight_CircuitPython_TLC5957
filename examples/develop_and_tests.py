@@ -41,7 +41,8 @@ spi_miso.direction = digitalio.Direction.INPUT
 print("init bitbangio.SPI")
 spi = bitbangio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
 
-# on the ItsyBitsy M4 EXPRESS on pin D9 the maximum frequency is about 6MHz?!
+# maximum frequency is currently hardcoded to 6MHz
+# https://github.com/adafruit/circuitpython/blob/master/ports/atmel-samd/common-hal/pulseio/PWMOut.c#L119
 gsclk_freqency = (6000 * 1000)  # 6MHz
 # gsclk_freqency = (2 * 1000)  # 2kHz
 gsclk = pulseio.PWMOut(
