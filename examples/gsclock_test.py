@@ -71,97 +71,13 @@ print("chip_count", pixels.chip_count)
 ##########################################
 print(42 * '*')
 print("set colors")
-for index in range(num_leds):
-    # pixels[index] = (0.1, 0.1, 0.1)
-    # float 0.00002 → int 00001
-    pixels[index] = (0.0, 0.0, 0.00002)
-    # pixels[index] = (1, 1, 1)
-# pixels[0] = (1, 0, 0)
-# pixels[1] = (0, 0.1, 0)
-# pixels[2] = (0, 0, 1)
-# pixels[3] = (1, 1, 1)
+for index in range(4):
+    # pixels[index] = (0.0, 0.0, 0.00002)
+    pixels[index] = (1, 1, 1)
+pixels.show()
 
-# pixels[0] = (65535, 0, 0)
-pixels[0] = (100, 0, 0)
-
-pixels[1] = (0, 1, 0)
-
-# pixels[2] = (0, 0, 65535)
-pixels[2] = (0, 0, 100)
-
-pixels[3] = (10, 10, 10)
-# pixels[3] = (65535, 65535, 65535)
-
-print("pixels._buffer", pixels._buffer)
-
-
-##########################################
-print(42 * '*')
-print("time meassurement:")
-loop_count = 100
-duration = 0
-start_time = time.monotonic()
-for index in range(loop_count):
-    pixels.show()
-end_time = time.monotonic()
-duration = end_time - start_time
-print(
-    "'pixels.show()'"
-    "duration: {}s for {} loops.\n"
-    "\t{:.2f}ms per loop"
-    "".format(
-        duration,
-        loop_count,
-        (duration/loop_count)*1000
-    )
-)
-
-duration = 0
-for index in range(loop_count):
-    start_time = time.monotonic()
-    pixels.show()
-    end_time = time.monotonic()
-    duration += end_time - start_time
-print(
-    "'pixels.show()'"
-    "duration: {}s for {} loops.\n"
-    "\t{:.2f}ms per loop"
-    "".format(
-        duration,
-        loop_count,
-        (duration/loop_count)*1000
-    )
-)
 ##########################################
 print(42 * '*')
 print("loop..")
-# while True:
-#     pass
-# color = (0.0, 0.0, 0.00002)
-color = (0, 0, 1)
-last_time = time.monotonic()
-loop_count = 0
 while True:
-    loop_count += 1
-    color = (0, 0, color[2] + 500)
-    if color[2] > 65535:
-        duration = time.monotonic() - last_time
-        print(
-            "duration: {}s for {} loops.\n"
-            "\t{:.2f}ms per loop"
-            "".format(
-                duration,
-                loop_count,
-                (duration/loop_count)*1000
-            )
-        )
-        # reset
-        color = (0, 0, 0)
-        last_time = time.monotonic()
-        loop_count = 0
-    for index in range(num_leds):
-        pixels[index] = color
-    # write data to chips
-    pixels.show()
-#     # wait a second
-#     time.sleep(0.01)
+    pass
