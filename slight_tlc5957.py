@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 # CircuitPython
 
 # The MIT License (MIT)
@@ -27,21 +28,23 @@
 # pylama:ignore=D205
 
 u"""
-CircuitPython TLC5957 library `slight_TLC5957`.
+s-light CircuitPython TLC5957 library.
 ====================================================
 
 CircuitPython library for
-`TI TLC5957 48-channel 16bit LED-Driver <http://www.ti.com/product/TLC5957/>`_
+`TI TLC5957 48-channel 16bit LED-Driver
+<http://www.ti.com/product/TLC5957/>`_
 
 * Author(s): Stefan Krüger
+
 
 Implementation Notes
 --------------------
 
 **Hardware:**
 
-* `example PCB with TLC5957 and 4x4 SMD RGB LEDs
-<https://github.com/s-light/magic_amulet_pcbs/tree/master/LEDBoard_4x4_HD>`_
+* example PCB with TLC5957 and 4x4 SMD RGB LEDs
+  https://github.com/s-light/magic_amulet_pcbs/tree/master/LEDBoard_4x4_HD
 
 **Software and Dependencies:**
 
@@ -76,7 +79,7 @@ class TLC5957:
         The clock and MOSI/outout must be set
         the MISO/input is currently unused.
         Maximal data clock frequence is:
-            - TLC5957: 33MHz
+        - TLC5957: 33MHz
     :param ~digitalio.DigitalInOut latch: The chip LAT (latch) pin object
         that implements the DigitalInOut API.
     :param ~pulseio.PWMOut gsclk: The chip Grayscale Clock pin object
@@ -110,52 +113,62 @@ class TLC5957:
     # @unique
     # class function_command(IntEnum):
     class function_command(object):
-        """
-        Enum for available function commands.
+        """Enum for available function commands."""
 
-        3.10 Function Commands Summary (page 30)
-        http:#www.ti.com/lit/ug/slvuaf0/slvuaf0.pdf#page=30&zoom=auto,-110,464
-        WRTGS
-            48-bit GS data write
-            copy common 48bit to GS-data-latch[GS-counter]
-            GS-counter -1
-        LATGS
-            latch grayscale
-            (768-bit GS data latch)
-            copy common 48bit to GS-data-latch[0]
-            if XREFRESH = 0
-                GS-data-latch copy to GS-data-latch 2
-            if XREFRESH = 1
-                GS-data-latch copy to GS-data-latch 2
-        WRTFC
-            write FC data
-            copy common 48bit to FC-data
-            if used after FCWRTEN
-        LINERESET
-            Line Counter register clear.
-            copy common 48bit to GS-data-latch[0]
-            data-latch-counter reset
-            if XREFRESH = 0
-                Autorefresh enabled
-                wehn GS-counter == 65535: GS-data-latch copy to GS-data-latch 2
-            if XREFRESH = 1
-                Autorefresh disabled
-                GS-data-latch copy to GS-data-latch 2
-                GS-counter reset
-                OUTx forced off
-            change group pattern when received
-        READFC
-            read FC data
-            copy FC-data to common 48bit
-            (can be read at SOUT)
-        TMGRST
-            reset line-counter
-            GS-counter = 0
-            OUTx forced off
-        FCWRTEN
-            enable writes to FC
-            this must send before WRTFC
-        """
+        # """
+        # Enum for available function commands.
+        #
+        # 3.10 Function Commands Summary (page 30)
+        # http:#www.ti.com/lit/ug/slvuaf0/slvuaf0.pdf#page=30&zoom=auto,-110,464
+        #
+        # WRTGS
+        # -----
+        #     48-bit GS data write
+        #     copy common 48bit to GS-data-latch[GS-counter]
+        #     GS-counter -1
+        # LATGS
+        # -----
+        #     latch grayscale
+        #     (768-bit GS data latch)
+        #     copy common 48bit to GS-data-latch[0]
+        #     if XREFRESH = 0
+        #         GS-data-latch copy to GS-data-latch 2
+        #     if XREFRESH = 1
+        #         GS-data-latch copy to GS-data-latch 2
+        # WRTFC
+        # -----
+        #     write FC data
+        #     copy common 48bit to FC-data
+        #     if used after FCWRTEN
+        # LINERESET
+        # ---------
+        #     Line Counter register clear.
+        #     copy common 48bit to GS-data-latch[0]
+        #     data-latch-counter reset
+        #     if XREFRESH = 0
+        #         Autorefresh enabled
+        #         wehn GS-counter == 65535: GS-data-latch copyto GS-data-latch2
+        #     if XREFRESH = 1
+        #         Autorefresh disabled
+        #         GS-data-latch copy to GS-data-latch 2
+        #         GS-counter reset
+        #         OUTx forced off
+        #     change group pattern when received
+        # READFC
+        # ------
+        #     read FC data
+        #     copy FC-data to common 48bit
+        #     (can be read at SOUT)
+        # TMGRST
+        # ------
+        #     reset line-counter
+        #     GS-counter = 0
+        #     OUTx forced off
+        # FCWRTEN
+        # -------
+        #     enable writes to FC
+        #     this must send before WRTFC
+        # """
 
         WRTGS = 1
         LATGS = 3
