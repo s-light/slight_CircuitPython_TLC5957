@@ -239,6 +239,9 @@ class TLC5957:
             self.CHIP_GS_BUFFER_BYTE_COUNT * self.chip_count)
         # print("CHIP_GS_BUFFER_BYTE_COUNT", self.CHIP_GS_BUFFER_BYTE_COUNT)
         # print("_buffer", self._buffer)
+        # write initial 0 values
+        self.show()
+        self.show()
 
     def _write_buffer(self):
         # Write out the current state to the shift register.
