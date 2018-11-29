@@ -16,8 +16,8 @@ import time
 import board
 # import busio
 import bitbangio
-import pulseio
 import digitalio
+import pulseio
 
 import slight_tlc5957
 

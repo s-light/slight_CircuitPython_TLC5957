@@ -11,12 +11,12 @@ this script contains a bunch of tests and debug outputs.
 its mainly the playground during the development of the library.
 """
 
-import supervisor
 import board
 # import busio
 import bitbangio
-import pulseio
 import digitalio
+import pulseio
+import supervisor
 
 import slight_tlc5957
 

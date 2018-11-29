@@ -14,8 +14,8 @@ Enjoy the colors :-)
 import board
 # import busio
 import bitbangio
-import pulseio
 import digitalio
+import pulseio
 
 import slight_tlc5957
 import adafruit_fancyled.adafruit_fancyled as fancyled
