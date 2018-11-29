@@ -23,6 +23,7 @@ spi_miso.direction = digitalio.Direction.INPUT
 # spi = busio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
 spi = bitbangio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
 
+# 6MHz for the grayscale clock
 gsclk = pulseio.PWMOut(
     board.D9, duty_cycle=(2 ** 15), frequency=(6000 * 1000))
 
