@@ -1,3 +1,7 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# CircuitPython
+
 """TLC5957 & FancyLED."""
 
 __doc__ = """
@@ -6,8 +10,6 @@ TLC5957 & FancyLED.
 this is an example for combining the TLC5957 library with FancyLED.
 Enjoy the colors :-)
 """
-
-import time
 
 import board
 # import busio

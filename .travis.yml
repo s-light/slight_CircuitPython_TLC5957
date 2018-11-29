@@ -28,7 +28,7 @@ install:
   - pip install --force-reinstall pylint==1.9.2
 
 script:
-  - pylint s-light_tlc5957.py
+  - pylint slight_tlc5957.py
   - ([[ ! -d "examples" ]] || pylint --disable=missing-docstring,invalid-name,bad-whitespace examples/*.py)
   - circuitpython-build-bundles --filename_prefix s-light-circuitpython-test_xx --library_location .
   - cd docs && sphinx-build -E -W -b html . _build/html

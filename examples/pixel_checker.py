@@ -1,3 +1,7 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# CircuitPython
+
 """Develop and Test TLC5957."""
 
 __doc__ = """

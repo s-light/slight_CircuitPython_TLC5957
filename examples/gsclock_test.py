@@ -1,3 +1,7 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# CircuitPython
+
 """Develop and Test TLC5957."""
 
 __doc__ = """
@@ -7,8 +11,7 @@ this script contains a bunch of tests and debug outputs.
 its mainly the playground during the development of the library.
 """
 
-import time
-
+import supervisor
 import board
 # import busio
 import bitbangio
@@ -46,7 +49,10 @@ spi = bitbangio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
 gsclk_freqency = (6000 * 1000)  # 6MHz
 # gsclk_freqency = (2 * 1000)  # 2kHz
 gsclk = pulseio.PWMOut(
-    board.D9, duty_cycle=(2 ** 15), frequency=gsclk_freqency)
+    board.D9,
+    duty_cycle=(2 ** 15),
+    frequency=gsclk_freqency,
+    variable_frequency=True)
 print("gsclk.frequency: {:}MHz".format(gsclk.frequency / (1000*1000)))
 
 latch = digitalio.DigitalInOut(board.D7)
@@ -71,13 +77,41 @@ print("chip_count", pixels.chip_count)
 ##########################################
 print(42 * '*')
 print("set colors")
-for index in range(4):
-    # pixels[index] = (0.0, 0.0, 0.00002)
-    pixels[index] = (1, 1, 1)
+# for index in range(4):
+#     # pixels[index] = (0.0, 0.0, 0.00002)
+#     pixels[index] = (1, 1, 1)
+pixels[0] = (1, 1, 1)
+pixels[1] = (1, 1, 1)
+pixels[2] = (2, 2, 2)
+pixels[3] = (2, 2, 2)
 pixels.show()
 
 ##########################################
 print(42 * '*')
 print("loop..")
+
+if supervisor.runtime.serial_connected:
+    print("you can change the gsclk.frequency:")
+    print("new frequency in MHz: ")
 while True:
-    pass
+    if supervisor.runtime.serial_bytes_available:
+        new_value = input()
+        new_freq_Hz = gsclk.frequency
+        try:
+            new_freq_Hz = int(float(new_value) * 1000 * 1000)
+        except ValueError as e:
+            print("Exception: ", e)
+        print(
+            "calculated frequency: {:}MHz (= {:}Hz)".format(
+                new_freq_Hz / (1000*1000),
+                new_freq_Hz
+            )
+        )
+        gsclk.frequency = new_freq_Hz
+        # reset duty_cycle to half
+        # https://circuitpython.readthedocs.io/en/latest/shared-bindings/pulseio/PWMOut.html#pulseio.PWMOut.duty_cycle
+        gsclk.duty_cycle = 0x7fff
+        # gsclk.duty_cycle = (2 ** 15)
+        print("gsclk.frequency: {:}MHz".format(gsclk.frequency / (1000*1000)))
+        # prepare new input
+        print("\nenter new frequency in MHz: ")

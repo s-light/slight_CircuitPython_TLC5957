@@ -1,3 +1,7 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# CircuitPython
+
 """Simple & Minimallistic example for the TLC5957 library."""
 
 import board

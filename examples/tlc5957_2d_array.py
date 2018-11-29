@@ -1,7 +1,11 @@
-"""TLC5957 & FancyLED."""
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# CircuitPython
+
+"""TLC5957 & FancyLED & 2D-Array mapping."""
 
 __doc__ = """
-TLC5957 & FancyLED.
+TLC5957 & FancyLED & 2D-Array mapping.
 
 this is an example for combining the TLC5957 library with FancyLED.
 Enjoy the colors :-)
@@ -74,15 +78,15 @@ print("channel_count", pixels.channel_count)
 ##########################################
 # helper function
 
-def map_range(x, in_min, in_max, out_min, out_max):
+def map_range(value, in_min, in_max, out_min, out_max):
     """Map Value from one range to another."""
-    return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
+    return (value - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
 
 
-def map_range_int(x, in_min, in_max, out_min, out_max):
+def map_range_int(value, in_min, in_max, out_min, out_max):
     """Map Value from one range to another."""
     return int(
-        (x - in_min) * (out_max - out_min)
+        (value - in_min) * (out_max - out_min)
         //
         (in_max - in_min) + out_min
     )
@@ -91,15 +95,18 @@ def map_range_int(x, in_min, in_max, out_min, out_max):
 ##########################################
 # mapping function
 
+pixel_map = [
+    # pylint: disable=bad-whitespace
+    [15, 14, 13, 12],
+    [11, 10,  9,  8],
+    [7,   6,  5,  4],
+    [3,   2,  1,  0],
+]
+
+
 def get_pixel_index_from_row_col(row, col):
     """Get pixel_index from row and column index."""
-    map = [
-        [15, 14, 13, 12],
-        [11, 10,  9,  8],
-        [7,   6,  5,  4],
-        [3,   2,  1,  0],
-    ]
-    pixel_index = map[row][col]
+    pixel_index = pixel_map[row][col]
     return pixel_index
 
 

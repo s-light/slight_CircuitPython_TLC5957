@@ -1,3 +1,7 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# CircuitPython
+
 """Develop and Test TLC5957."""
 
 __doc__ = """
@@ -68,100 +72,122 @@ pixels = slight_tlc5957.TLC5957(
 print("pixel_count", pixels.pixel_count)
 print("chip_count", pixels.chip_count)
 
-##########################################
-print(42 * '*')
-print("set colors")
-for index in range(num_leds):
-    # pixels[index] = (0.1, 0.1, 0.1)
-    # float 0.00002 → int 00001
-    pixels[index] = (0.0, 0.0, 0.00002)
-    # pixels[index] = (1, 1, 1)
-# pixels[0] = (1, 0, 0)
-# pixels[1] = (0, 0.1, 0)
-# pixels[2] = (0, 0, 1)
-# pixels[3] = (1, 1, 1)
-
-# pixels[0] = (65535, 0, 0)
-pixels[0] = (100, 0, 0)
-
-pixels[1] = (0, 1, 0)
-
-# pixels[2] = (0, 0, 65535)
-pixels[2] = (0, 0, 100)
-
-pixels[3] = (10, 10, 10)
-# pixels[3] = (65535, 65535, 65535)
-
-print("pixels._buffer", pixels._buffer)
-
 
 ##########################################
-print(42 * '*')
-print("time meassurement:")
-loop_count = 100
-duration = 0
-start_time = time.monotonic()
-for index in range(loop_count):
-    pixels.show()
-end_time = time.monotonic()
-duration = end_time - start_time
-print(
-    "'pixels.show()'"
-    "duration: {}s for {} loops.\n"
-    "\t{:.2f}ms per loop"
-    "".format(
-        duration,
-        loop_count,
-        (duration/loop_count)*1000
-    )
-)
-
-duration = 0
-for index in range(loop_count):
-    start_time = time.monotonic()
-    pixels.show()
-    end_time = time.monotonic()
-    duration += end_time - start_time
-print(
-    "'pixels.show()'"
-    "duration: {}s for {} loops.\n"
-    "\t{:.2f}ms per loop"
-    "".format(
-        duration,
-        loop_count,
-        (duration/loop_count)*1000
-    )
-)
-##########################################
-print(42 * '*')
-print("loop..")
-# while True:
-#     pass
-# color = (0.0, 0.0, 0.00002)
-color = (0, 0, 1)
-last_time = time.monotonic()
-loop_count = 0
-while True:
-    loop_count += 1
-    color = (0, 0, color[2] + 500)
-    if color[2] > 65535:
-        duration = time.monotonic() - last_time
-        print(
-            "duration: {}s for {} loops.\n"
-            "\t{:.2f}ms per loop"
-            "".format(
-                duration,
-                loop_count,
-                (duration/loop_count)*1000
-            )
-        )
-        # reset
-        color = (0, 0, 0)
-        last_time = time.monotonic()
-        loop_count = 0
+def set_some_colors():
+    """Set some colors."""
     for index in range(num_leds):
-        pixels[index] = color
-    # write data to chips
-    pixels.show()
-#     # wait a second
-#     time.sleep(0.01)
+        # pixels[index] = (0.1, 0.1, 0.1)
+        # float 0.00002 → int 00001
+        pixels[index] = (0.0, 0.0, 0.00002)
+        # pixels[index] = (1, 1, 1)
+    # pixels[0] = (1, 0, 0)
+    # pixels[1] = (0, 0.1, 0)
+    # pixels[2] = (0, 0, 1)
+    # pixels[3] = (1, 1, 1)
+
+    # pixels[0] = (65535, 0, 0)
+    pixels[0] = (100, 0, 0)
+
+    pixels[1] = (0, 1, 0)
+
+    # pixels[2] = (0, 0, 65535)
+    pixels[2] = (0, 0, 100)
+
+    pixels[3] = (10, 10, 10)
+    # pixels[3] = (65535, 65535, 65535)
+
+
+##########################################
+def time_meassurement():
+    """Meassure duration of .show() function."""
+    # pylint: disable=no-member
+    loop_count = 100
+    duration = 0
+    start_time = time.monotonic()
+    for _index in range(loop_count):
+        pixels.show()
+    end_time = time.monotonic()
+    duration = end_time - start_time
+    print(
+        "'pixels.show()'"
+        "duration: {}s for {} loops.\n"
+        "\t{:.2f}ms per loop"
+        "".format(
+            duration,
+            loop_count,
+            (duration/loop_count)*1000
+        )
+    )
+
+    duration = 0
+    for _index in range(loop_count):
+        start_time = time.monotonic()
+        pixels.show()
+        end_time = time.monotonic()
+        duration += end_time - start_time
+    print(
+        "'pixels.show()'"
+        "duration: {}s for {} loops.\n"
+        "\t{:.2f}ms per loop"
+        "".format(
+            duration,
+            loop_count,
+            (duration/loop_count)*1000
+        )
+    )
+
+
+##########################################
+def main_loop():
+    """Loop."""
+    # pylint: disable=no-member
+    # pylint does not know about time.monotonic()
+
+    # color = (0.0, 0.0, 0.00002)
+    color = (0, 0, 1)
+    last_time = time.monotonic()
+    loop_count = 0
+    while True:
+        loop_count += 1
+        color = (0, 0, color[2] + 500)
+        if color[2] > 65535:
+            duration = time.monotonic() - last_time
+            print(
+                "duration: {}s for {} loops.\n"
+                "\t{:.2f}ms per loop"
+                "".format(
+                    duration,
+                    loop_count,
+                    (duration/loop_count)*1000
+                )
+            )
+            # reset
+            color = (0, 0, 0)
+            last_time = time.monotonic()
+            loop_count = 0
+        for index in range(num_leds):
+            pixels[index] = color
+        # write data to chips
+        pixels.show()
+    #     # wait a second
+    #     time.sleep(0.01)
+
+
+##########################################
+if __name__ == '__main__':
+    print(42 * '*')
+    print("set colors")
+    set_some_colors()
+    # print("pixels._buffer", pixels._buffer)
+    # print("pixels", pixels)
+
+    print(42 * '*')
+    print("time meassurement:")
+    time_meassurement()
+
+    print(42 * '*')
+    print("loop..")
+    main_loop()
+    # while True:
+    #     pass
