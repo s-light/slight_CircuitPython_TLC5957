@@ -416,7 +416,7 @@ class TLC5957(object):
 
         Each value is a 16-bit number from 0-65535.
         """
-        if 0 < key > (self.pixel_count-1):
+        if 0 < key < self.pixel_count:
             return (
                 self._get_16bit_value_from_buffer(key + 0),
                 self._get_16bit_value_from_buffer(key + 2),
