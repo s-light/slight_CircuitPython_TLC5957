@@ -108,32 +108,32 @@ class TLC5957(object):
     CHIP_FUNCTION_CMD_BYTE_COUNT = CHIP_FUNCTION_CMD_BIT_COUNT // 8
 
     @staticmethod
-    def set_bit_with_mask(v, mask, x):
+    def set_bit_with_mask(value, mask, value_new):
         """Set bit with help of mask."""
         # clear
-        v &= ~mask
-        if x:
+        value &= ~mask
+        if value_new:
             # set
-            v |= mask
-        return v
+            value |= mask
+        return value
 
     @staticmethod
-    def set_bit(v, index, x):
+    def set_bit(value, index, value_new):
         """Set bit - return new value.
 
-        Set the index:th bit of v to 1 if x is truthy,
+        Set the index:th bit of value to 1 if value_new is truthy,
         else to 0, and return the new value.
         https://stackoverflow.com/a/12174051/574981
         """
         # Compute mask, an integer with just bit 'index' set.
         mask = 1 << index
         # Clear the bit indicated by the mask (if x is False)
-        v &= ~mask
-        if x:
+        value &= ~mask
+        if value_new:
             # If x was True, set the bit indicated by the mask.
-            v |= mask
+            value |= mask
         # Return the result, we're done.
-        return v
+        return value
 
     ##########################################
     # class Function_Command():
