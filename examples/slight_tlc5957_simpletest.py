@@ -4,6 +4,8 @@
 
 """Simple & Minimallistic example for the TLC5957 library."""
 
+import time
+
 import board
 # import busio
 import bitbangio
@@ -25,7 +27,7 @@ spi = bitbangio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
 
 # 6MHz for the grayscale clock
 gsclk = pulseio.PWMOut(
-    board.D9, duty_cycle=(2 ** 15), frequency=(6000 * 1000))
+    board.D9, duty_cycle=(2 ** 15), frequency=(100 * 1000))
 
 latch = digitalio.DigitalInOut(board.D7)
 latch.direction = digitalio.Direction.OUTPUT
@@ -52,5 +54,13 @@ pixels[1] = (0, 32000, 65535)
 # write data to chips
 pixels.show()
 
+fade_value = 0
+step = 1
+
 while True:
-    pass
+    pixels[3] = (0, 100, fade_value)
+    pixels.show()
+    if (fade_value >= 65535) or (fade_value <= 0):
+        step *= -1
+    fade_value += step
+    # time.sleep(0.3)
