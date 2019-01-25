@@ -365,7 +365,7 @@ class TLC5957(object):
         # calculate header start
         header_start = chip_index * self.CHIP_BUFFER_LENGTH
         # get chip header
-        header = self._get_32bit_value_from_buffer(header_start)
+        header = self._get_48bit_value_from_buffer(header_start)
         # print("{:032b}".format(header))
         # 0xFFFFFFFF == 0b11111111111111111111111111111111
         # create/move mask
@@ -375,7 +375,7 @@ class TLC5957(object):
         # set
         header |= value
         # write header back
-        self._set_32bit_value_in_buffer(header_start, header)
+        self._set_48bit_value_in_buffer(header_start, header)
 
     ##########################################
 
