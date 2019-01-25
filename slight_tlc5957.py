@@ -94,88 +94,111 @@ class TLC5957(object):
     # helper
     ##########################################
 
-    CHIP_LED_COUNT = 16
     COLORS_PER_PIXEL = 3
+    PIXEL_PER_CHIP = 16
+    CHANNEL_PER_CHIP = COLORS_PER_PIXEL * PIXEL_PER_CHIP
+
     BUFFER_BYTES_PER_COLORS = 2
     BUFFER_BYTES_PER_PIXEL = BUFFER_BYTES_PER_COLORS * COLORS_PER_PIXEL
-    CHIP_SHIFT_BUFFER_BIT_COUNT = 48
-    CHIP_SHIFT_BUFFER_BYTE_COUNT = CHIP_SHIFT_BUFFER_BIT_COUNT // 8
-    CHIP_GS_BUFFER_BYTE_COUNT = CHIP_SHIFT_BUFFER_BYTE_COUNT * CHIP_LED_COUNT
+
+    CHIP_BUFFER_BIT_COUNT = 48
+    CHIP_BUFFER_BYTE_COUNT = CHIP_BUFFER_BIT_COUNT // 8
+    CHIP_GS_BUFFER_BYTE_COUNT = CHIP_BUFFER_BYTE_COUNT * PIXEL_PER_CHIP
     CHIP_FUNCTION_CMD_BIT_COUNT = 16
     CHIP_FUNCTION_CMD_BYTE_COUNT = CHIP_FUNCTION_CMD_BIT_COUNT // 8
 
-    # https://docs.python.org/3/library/enum.html#intenum
-    # @unique
-    # class Function_Command(IntEnum):
-    class Function_Command(object):
-        """Enum for available function commands."""
+    @staticmethod
+    def set_bit_with_mask(v, mask, x):
+        """Set bit with help of mask."""
+        # clear
+        v &= ~mask
+        if x:
+            # set
+            v |= mask
+        return v
 
-        # Yet another pylint issue, it fails to recognize a
-        # 'Enum' class by definition has no public methods.  Disable the check.
-        # pylint: disable=too-few-public-methods
+    @staticmethod
+    def set_bit(v, index, x):
+        """Set bit - return new value.
 
-        # """
-        # Enum for available function commands.
-        #
-        # 3.10 Function Commands Summary (page 30)
-        # http:#www.ti.com/lit/ug/slvuaf0/slvuaf0.pdf#page=30&zoom=auto,-110,464
-        #
-        # WRTGS
-        # -----
-        #     48-bit GS data write
-        #     copy common 48bit to GS-data-latch[GS-counter]
-        #     GS-counter -1
-        # LATGS
-        # -----
-        #     latch grayscale
-        #     (768-bit GS data latch)
-        #     copy common 48bit to GS-data-latch[0]
-        #     if XREFRESH = 0
-        #         GS-data-latch copy to GS-data-latch 2
-        #     if XREFRESH = 1
-        #         GS-data-latch copy to GS-data-latch 2
-        # WRTFC
-        # -----
-        #     write FC data
-        #     copy common 48bit to FC-data
-        #     if used after FCWRTEN
-        # LINERESET
-        # ---------
-        #     Line Counter register clear.
-        #     copy common 48bit to GS-data-latch[0]
-        #     data-latch-counter reset
-        #     if XREFRESH = 0
-        #         Autorefresh enabled
-        #         wehn GS-counter == 65535: GS-data-latch copyto GS-data-latch2
-        #     if XREFRESH = 1
-        #         Autorefresh disabled
-        #         GS-data-latch copy to GS-data-latch 2
-        #         GS-counter reset
-        #         OUTx forced off
-        #     change group pattern when received
-        # READFC
-        # ------
-        #     read FC data
-        #     copy FC-data to common 48bit
-        #     (can be read at SOUT)
-        # TMGRST
-        # ------
-        #     reset line-counter
-        #     GS-counter = 0
-        #     OUTx forced off
-        # FCWRTEN
-        # -------
-        #     enable writes to FC
-        #     this must send before WRTFC
-        # """
+        Set the index:th bit of v to 1 if x is truthy,
+        else to 0, and return the new value.
+        https://stackoverflow.com/a/12174051/574981
+        """
+        # Compute mask, an integer with just bit 'index' set.
+        mask = 1 << index
+        # Clear the bit indicated by the mask (if x is False)
+        v &= ~mask
+        if x:
+            # If x was True, set the bit indicated by the mask.
+            v |= mask
+        # Return the result, we're done.
+        return v
 
-        WRTGS = 1
-        LATGS = 3
-        WRTFC = 5
-        LINERESET = 7
-        READFC = 11
-        TMGRST = 13
-        FCWRTEN = 15
+    ##########################################
+    # class Function_Command():
+    # """
+    # Enum for available function commands.
+    #
+    # 3.10 Function Commands Summary (page 30)
+    # http:#www.ti.com/lit/ug/slvuaf0/slvuaf0.pdf#page=30&zoom=auto,-110,464
+    #
+    # WRTGS
+    # -----
+    #     48-bit GS data write
+    #     copy common 48bit to GS-data-latch[GS-counter]
+    #     GS-counter -1
+    # LATGS
+    # -----
+    #     latch grayscale
+    #     (768-bit GS data latch)
+    #     copy common 48bit to GS-data-latch[0]
+    #     if XREFRESH = 0
+    #         GS-data-latch copy to GS-data-latch 2
+    #     if XREFRESH = 1
+    #         GS-data-latch copy to GS-data-latch 2
+    # WRTFC
+    # -----
+    #     write FC data
+    #     copy common 48bit to FC-data
+    #     if used after FCWRTEN
+    # LINERESET
+    # ---------
+    #     Line Counter register clear.
+    #     copy common 48bit to GS-data-latch[0]
+    #     data-latch-counter reset
+    #     if XREFRESH = 0
+    #         Autorefresh enabled
+    #         wehn GS-counter == 65535: GS-data-latch copyto GS-data-latch2
+    #     if XREFRESH = 1
+    #         Autorefresh disabled
+    #         GS-data-latch copy to GS-data-latch 2
+    #         GS-counter reset
+    #         OUTx forced off
+    #     change group pattern when received
+    # READFC
+    # ------
+    #     read FC data
+    #     copy FC-data to common 48bit
+    #     (can be read at SOUT)
+    # TMGRST
+    # ------
+    #     reset line-counter
+    #     GS-counter = 0
+    #     OUTx forced off
+    # FCWRTEN
+    # -------
+    #     enable writes to FC
+    #     this must send before WRTFC
+    # """
+
+    _FC__WRTGS = 1
+    _FC__LATGS = 3
+    _FC__WRTFC = 5
+    _FC__LINERESET = 7
+    _FC__READFC = 11
+    _FC__TMGRST = 13
+    _FC__FCWRTEN = 15
 
     ##########################################
     # 3.3.3 Function Control (FC) Register
@@ -216,6 +239,144 @@ class TLC5957(object):
     # 45-47   LGSE2           000         first line performance improvment
     # TODO(s-light): add function control options
 
+    # _FC_CHIP_BUFFER_BIT_OFFSET = _BC_BIT_COUNT
+    _FC_BIT_COUNT = CHIP_BUFFER_BIT_COUNT
+    _FC_FIELDS = {
+        "LODVTH": {
+            "offset": 0,
+            "length": 2,
+            "mask": 0b11,
+            "default": 0b01,
+        },
+        "SEL_TD0": {
+            "offset": 2,
+            "length": 2,
+            "mask": 0b11,
+            "default": 0b01,
+        },
+        "SEL_GDLY": {
+            "offset": 4,
+            "length": 1,
+            "mask": 0b1,
+            "default": 0b1,
+        },
+        "XREFRESH": {
+            "offset": 5,
+            "length": 1,
+            "mask": 0b1,
+            "default": 0b0,
+        },
+        "SEL_GCK_EDGE": {
+            "offset": 6,
+            "length": 1,
+            "mask": 0b1,
+            "default": 0b0,
+        },
+        "SEL_PCHG": {
+            "offset": 7,
+            "length": 1,
+            "mask": 0b1,
+            "default": 0b0,
+        },
+        "ESPWM": {
+            "offset": 8,
+            "length": 1,
+            "mask": 0b1,
+            "default": 0b0,
+        },
+        "LGSE3": {
+            "offset": 9,
+            "length": 1,
+            "mask": 0b1,
+            "default": 0b0,
+        },
+        "LGSE1": {
+            "offset": 11,
+            "length": 3,
+            "mask": 0b111,
+            "default": 0b000,
+        },
+        "CCB": {
+            "offset": 14,
+            "length": 9,
+            "mask": 0b111111111,
+            "default": 0b100000000,
+        },
+        "CCG": {
+            "offset": 23,
+            "length": 9,
+            "mask": 0b111111111,
+            "default": 0b100000000,
+        },
+        "CCR": {
+            "offset": 32,
+            "length": 9,
+            "mask": 0b111111111,
+            "default": 0b100000000,
+        },
+        "BC": {
+            "offset": 41,
+            "length": 3,
+            "mask": 0b111,
+            "default": 0b100,
+        },
+        "PokerTransMode": {
+            "offset": 44,
+            "length": 1,
+            "mask": 0b1,
+            "default": 0b0,
+        },
+        "LGSE2": {
+            "offset": 45,
+            "length": 3,
+            "mask": 0b111,
+            "default": 0b000,
+        },
+    }
+
+    ##########################################
+
+    def set_fc_bits_in_buffer(
+            self,
+            *,
+            chip_index=0,
+            part_bit_offset=0,
+            field={"mask": 0, "length": 0, "offset": 0, "default": 0},
+            value=0
+    ):
+        """Set function control bits in buffer."""
+        # print(
+        #     "chip_index={} "
+        #     "part_bit_offset={} "
+        #     "field={} "
+        #     "value={} "
+        #     "".format(
+        #         chip_index,
+        #         part_bit_offset,
+        #         field,
+        #         value
+        #     )
+        # )
+        offset = part_bit_offset + field["offset"]
+        # restrict value
+        value &= field["mask"]
+        # move value to position
+        value = value << offset
+        # calculate header start
+        header_start = chip_index * self.CHIP_BUFFER_LENGTH
+        # get chip header
+        header = self._get_32bit_value_from_buffer(header_start)
+        # print("{:032b}".format(header))
+        # 0xFFFFFFFF == 0b11111111111111111111111111111111
+        # create/move mask
+        mask = field["mask"] << offset
+        # clear
+        header &= ~mask
+        # set
+        header |= value
+        # write header back
+        self._set_32bit_value_in_buffer(header_start, header)
+
     ##########################################
 
     def __init__(
@@ -242,8 +403,8 @@ class TLC5957(object):
         self.pixel_count = pixel_count
         # print("pixel_count", self.pixel_count)
         # calculate how many chips are needed
-        self.chip_count = self.pixel_count // self.CHIP_LED_COUNT
-        if self.pixel_count % self.CHIP_LED_COUNT > 0:
+        self.chip_count = self.pixel_count // self.PIXEL_PER_CHIP
+        if self.pixel_count % self.PIXEL_PER_CHIP > 0:
             self.chip_count += 1
         # print("chip_count", self.chip_count)
         self.channel_count = self.pixel_count * self.COLORS_PER_PIXEL
@@ -261,10 +422,10 @@ class TLC5957(object):
         # Write out the current state to the shift register.
         buffer_start = 0
         write_count = (
-            (self.CHIP_SHIFT_BUFFER_BYTE_COUNT * self.chip_count)
+            (self.CHIP_BUFFER_BYTE_COUNT * self.chip_count)
             - self.CHIP_FUNCTION_CMD_BYTE_COUNT)
 
-        for index in range(self.CHIP_LED_COUNT):
+        for index in range(self.PIXEL_PER_CHIP):
             try:
                 # wait untill we have access to / locked SPI bus
                 while not self._spi.try_lock():
@@ -296,12 +457,12 @@ class TLC5957(object):
                 self._spi.unlock()
             buffer_start += write_count
             # special
-            if index == self.CHIP_LED_COUNT - 1:
+            if index == self.PIXEL_PER_CHIP - 1:
                 self._write_buffer_with_function_command(
-                    self.Function_Command.LATGS, buffer_start)
+                    self._FC__LATGS, buffer_start)
             else:
                 self._write_buffer_with_function_command(
-                    self.Function_Command.WRTGS, buffer_start)
+                    self._FC__WRTGS, buffer_start)
             buffer_start += 2
 
     def _write_buffer_with_function_command(
@@ -318,7 +479,7 @@ class TLC5957(object):
         self._spi_clock.value = 0
         self._spi_mosi.value = 0
         self._latch.value = 0
-        latch_start_index = self.CHIP_LED_COUNT - function_command
+        latch_start_index = self.PIXEL_PER_CHIP - function_command
         for index in range(self.CHIP_FUNCTION_CMD_BIT_COUNT):
             if latch_start_index == index:
                 self._latch.value = 1
@@ -346,16 +507,343 @@ class TLC5957(object):
         """Write out Grayscale Values to chips."""
         self._write_buffer()
 
+    ##########################################
+    # static helpers
+
+    ##########################################
+
+    def _get_48bit_value_from_buffer(self, buffer_start):
+        return (
+            (self._buffer[buffer_start + 0] << 40) |
+            (self._buffer[buffer_start + 1] << 32) |
+            (self._buffer[buffer_start + 2] << 24) |
+            (self._buffer[buffer_start + 3] << 16) |
+            (self._buffer[buffer_start + 4] << 8) |
+            self._buffer[buffer_start + 5]
+        )
+
+    def _set_48bit_value_in_buffer(self, buffer_start, value):
+        if not 0 <= value <= 0xFFFFFFFFFFFF:
+            raise ValueError(
+                "value {} not in range: 0..0xFFFFFFFF"
+                "".format(value)
+            )
+        # print("buffer_start", buffer_start, "value", value)
+        # self._debug_print_buffer()
+        self._buffer[buffer_start + 0] = (value >> 40) & 0xFF
+        self._buffer[buffer_start + 1] = (value >> 32) & 0xFF
+        self._buffer[buffer_start + 2] = (value >> 24) & 0xFF
+        self._buffer[buffer_start + 3] = (value >> 16) & 0xFF
+        self._buffer[buffer_start + 4] = (value >> 8) & 0xFF
+        self._buffer[buffer_start + 5] = value & 0xFF
+
+    # 32bit_value
+    # def _get_32bit_value_from_buffer(self, buffer_start):
+    #     return (
+    #         (self._buffer[buffer_start + 0] << 24) |
+    #         (self._buffer[buffer_start + 1] << 16) |
+    #         (self._buffer[buffer_start + 2] << 8) |
+    #         self._buffer[buffer_start + 3]
+    #     )
+    #
+    # def _set_32bit_value_in_buffer(self, buffer_start, value):
+    #     if not 0 <= value <= 0xFFFFFFFF:
+    #         raise ValueError(
+    #             "value {} not in range: 0..0xFFFFFFFF"
+    #             "".format(value)
+    #         )
+    #     # print("buffer_start", buffer_start, "value", value)
+    #     # self._debug_print_buffer()
+    #     self._buffer[buffer_start + 0] = (value >> 24) & 0xFF
+    #     self._buffer[buffer_start + 1] = (value >> 16) & 0xFF
+    #     self._buffer[buffer_start + 2] = (value >> 8) & 0xFF
+    #     self._buffer[buffer_start + 3] = value & 0xFF
+
+    def _get_16bit_value_from_buffer(self, buffer_start):
+        return (
+            (self._buffer[buffer_start + 0] << 8) |
+            self._buffer[buffer_start + 1]
+        )
+
+    def _set_16bit_value_in_buffer(self, buffer_start, value):
+        assert 0 <= value <= 65535
+        # print("buffer_start", buffer_start, "value", value)
+        self._buffer[buffer_start + 0] = (value >> 8) & 0xFF
+        self._buffer[buffer_start + 1] = value & 0xFF
+
+    @staticmethod
+    def _convert_01_float_to_16bit_integer(value):
+        """Convert 0..1 Float Value to 16bit (0..65535) Range."""
+        # check if value is in range
+        if not 0.0 <= value[0] <= 1.0:
+            raise ValueError(
+                "value[0] {} not in range: 0..1"
+                "".format(value[0])
+            )
+        # convert to 16bit value
+        return int(value * 65535)
+
+    @classmethod
+    def _convert_if_float(cls, value):
+        """Convert if value is Float."""
+        if isinstance(value, float):
+            value = cls._convert_01_float_to_16bit_integer(value)
+        return value
+
+    @staticmethod
+    def _check_and_convert(value):
+        # check if we have float values
+        if isinstance(value[0], float):
+            # check if value is in range
+            if not 0.0 <= value[0] <= 1.0:
+                raise ValueError(
+                    "value[0] {} not in range: 0..1"
+                    "".format(value[0])
+                )
+            # convert to 16bit value
+            value[0] = int(value[0] * 65535)
+        else:
+            if not 0 <= value[0] <= 65535:
+                raise ValueError(
+                    "value[0] {} not in range: 0..65535"
+                    "".format(value[0])
+                )
+        if isinstance(value[1], float):
+            if not 0.0 <= value[1] <= 1.0:
+                raise ValueError(
+                    "value[1] {} not in range: 0..1"
+                    "".format(value[1])
+                )
+            value[1] = int(value[1] * 65535)
+        else:
+            if not 0 <= value[1] <= 65535:
+                raise ValueError(
+                    "value[1] {} not in range: 0..65535"
+                    "".format(value[1])
+                )
+        if isinstance(value[2], float):
+            if not 0.0 <= value[2] <= 1.0:
+                raise ValueError(
+                    "value[2] {} not in range: 0..1"
+                    "".format(value[2])
+                )
+            value[2] = int(value[2] * 65535)
+        else:
+            if not 0 <= value[2] <= 65535:
+                raise ValueError(
+                    "value[2] {} not in range: 0..65535"
+                    "".format(value[2])
+                )
+
+    ##########################################
+
+    def set_pixel_16bit_value(self, pixel_index, value_r, value_g, value_b):
+        """
+        Set the value for pixel.
+
+        This is a Fast UNPROTECTED function:
+        no error / range checking is done.
+
+        :param int pixel_index: 0..(pixel_count)
+        :param int value_r: 0..65535
+        :param int value_g: 0..65535
+        :param int value_b: 0..65535
+        """
+        pixel_start = pixel_index * self.COLORS_PER_PIXEL
+        buffer_start = (pixel_start + 0) * self.BUFFER_BYTES_PER_PIXEL
+        self._buffer[buffer_start + 0] = (value_b >> 8) & 0xFF
+        self._buffer[buffer_start + 1] = value_b & 0xFF
+        buffer_start = (pixel_start + 1) * self.BUFFER_BYTES_PER_PIXEL
+        self._buffer[buffer_start + 0] = (value_g >> 8) & 0xFF
+        self._buffer[buffer_start + 1] = value_g & 0xFF
+        buffer_start = (pixel_start + 2) * self.BUFFER_BYTES_PER_PIXEL
+        self._buffer[buffer_start + 0] = (value_r >> 8) & 0xFF
+        self._buffer[buffer_start + 1] = value_r & 0xFF
+
+    def set_pixel_float_value(self, pixel_index, value_r, value_g, value_b):
+        """
+        Set the value for pixel.
+
+        This is a Fast UNPROTECTED function:
+        no error / range checking is done.
+
+        :param int pixel_index: 0..(pixel_count)
+        :param int value_r: 0..1
+        :param int value_g: 0..1
+        :param int value_b: 0..1
+        """
+        value_r = int(value_r * 65535)
+        value_g = int(value_g * 65535)
+        value_b = int(value_b * 65535)
+        pixel_start = pixel_index * self.COLORS_PER_PIXEL
+        buffer_start = (pixel_start + 0) * self.BUFFER_BYTES_PER_PIXEL
+        self._buffer[buffer_start + 0] = (value_b >> 8) & 0xFF
+        self._buffer[buffer_start + 1] = value_b & 0xFF
+        buffer_start = (pixel_start + 1) * self.BUFFER_BYTES_PER_PIXEL
+        self._buffer[buffer_start + 0] = (value_g >> 8) & 0xFF
+        self._buffer[buffer_start + 1] = value_g & 0xFF
+        buffer_start = (pixel_start + 2) * self.BUFFER_BYTES_PER_PIXEL
+        self._buffer[buffer_start + 0] = (value_r >> 8) & 0xFF
+        self._buffer[buffer_start + 1] = value_r & 0xFF
+
+    def set_pixel_16bit_color(self, pixel_index, color):
+        """
+        Set color for pixel.
+
+        This is a Fast UNPROTECTED function:
+        no error / range checking is done.
+        its a little bit slower as `set_pixel_16bit_value`
+
+        :param int pixel_index: 0..(pixel_count)
+        :param int color: 3-tuple of R, G, B;  0..65535
+        """
+        pixel_start = pixel_index * self.COLORS_PER_PIXEL
+        buffer_start = (pixel_start + 0) * self.BUFFER_BYTES_PER_PIXEL
+        self._buffer[buffer_start + 0] = (color[2] >> 8) & 0xFF
+        self._buffer[buffer_start + 1] = color[2] & 0xFF
+        buffer_start = (pixel_start + 1) * self.BUFFER_BYTES_PER_PIXEL
+        self._buffer[buffer_start + 0] = (color[1] >> 8) & 0xFF
+        self._buffer[buffer_start + 1] = color[1] & 0xFF
+        buffer_start = (pixel_start + 2) * self.BUFFER_BYTES_PER_PIXEL
+        self._buffer[buffer_start + 0] = (color[0] >> 8) & 0xFF
+        self._buffer[buffer_start + 1] = color[0] & 0xFF
+
+    def set_pixel_float_color(self, pixel_index, color):
+        """
+        Set color for pixel.
+
+        This is a Fast UNPROTECTED function:
+        no error / range checking is done.
+        its a little bit slower as `set_pixel_16bit_value`
+
+        :param int pixel_index: 0..(pixel_count)
+        :param tuple/float color: 3-tuple of R, G, B;  0..1
+        """
+        # convert to 16bit int
+        value_r = int(color[0] * 65535)
+        value_g = int(color[1] * 65535)
+        value_b = int(color[2] * 65535)
+        # calculate pixel_start
+        pixel_start = pixel_index * self.COLORS_PER_PIXEL
+        # set values
+        buffer_start = (pixel_start + 0) * self.BUFFER_BYTES_PER_PIXEL
+        self._buffer[buffer_start + 0] = (value_b >> 8) & 0xFF
+        self._buffer[buffer_start + 1] = value_b & 0xFF
+        buffer_start = (pixel_start + 1) * self.BUFFER_BYTES_PER_PIXEL
+        self._buffer[buffer_start + 0] = (value_g >> 8) & 0xFF
+        self._buffer[buffer_start + 1] = value_g & 0xFF
+        buffer_start = (pixel_start + 2) * self.BUFFER_BYTES_PER_PIXEL
+        self._buffer[buffer_start + 0] = (value_r >> 8) & 0xFF
+        self._buffer[buffer_start + 1] = value_r & 0xFF
+
+    def set_pixel(self, pixel_index, value):
+        """
+        Set the R, G, B values for the pixel.
+
+        this funciton hase some advanced error checking.
+        it is much slower than the other provided 'bare' variants..
+        but therefor gives clues to what is going wrong.. ;-)
+
+        :param int pixel_index: 0..(pixel_count)
+        :param tuple value: 3-tuple of R, G, B;
+            each int 0..65535 or float 0..1
+        """
+        if 0 <= pixel_index < self.pixel_count:
+            # print("value", value)
+            # convert to list
+            value = list(value)
+            # print("value", value)
+            # print("rep:")
+            # repr(value)
+            # print("check length..")
+            if len(value) != self.COLORS_PER_PIXEL:
+                raise IndexError(
+                    "length of value {} does not match COLORS_PER_PIXEL (= {})"
+                    "".format(len(value), self.COLORS_PER_PIXEL)
+                )
+            # tested:
+            # splitting up into variables to not need the list..
+            # this is about 0.25ms slower..
+            # value_r = value[0]
+            # value_g = value[1]
+            # value_b = value[2]
+
+            # check if we have float values
+            # this modifies 'value' in place..
+            self._check_and_convert(value)
+
+            # print("value", value)
+
+            # update buffer
+            # print("pixel_index", pixel_index, "value", value)
+            # we change channel order here:
+            # buffer channel order is blue, green, red
+            pixel_start = pixel_index * self.COLORS_PER_PIXEL
+            # self._set_channel_16bit_value(
+            #     pixel_start + 0,
+            #     value[2])
+            # self._set_channel_16bit_value(
+            #     pixel_start + 1,
+            #     value[1])
+            # self._set_channel_16bit_value(
+            #     pixel_start + 2,
+            #     value[0])
+            # optimize2
+            buffer_start = (pixel_start + 0) * self.BUFFER_BYTES_PER_PIXEL
+            self._buffer[buffer_start + 0] = (value[2] >> 8) & 0xFF
+            self._buffer[buffer_start + 1] = value[2] & 0xFF
+            buffer_start = (pixel_start + 1) * self.BUFFER_BYTES_PER_PIXEL
+            self._buffer[buffer_start + 0] = (value[1] >> 8) & 0xFF
+            self._buffer[buffer_start + 1] = value[1] & 0xFF
+            buffer_start = (pixel_start + 2) * self.BUFFER_BYTES_PER_PIXEL
+            self._buffer[buffer_start + 0] = (value[0] >> 8) & 0xFF
+            self._buffer[buffer_start + 1] = value[0] & 0xFF
+        else:
+            raise IndexError(
+                "index {} out of range [0..{}]"
+                "".format(pixel_index, self.pixel_count)
+            )
+
+    def set_pixel_all_16bit_value(self, value_r, value_g, value_b):
+        """
+        Set the R, G, B values for all pixels.
+
+        fast. without error checking.
+
+        :param int value_r: 0..65535
+        :param int value_g: 0..65535
+        :param int value_b: 0..65535
+        """
+        for i in range(self.pixel_count):
+            self.set_pixel_16bit_value(i, value_r, value_g, value_b)
+
+    def set_pixel_all(self, color):
+        """
+        Set the R, G, B values for all pixels.
+
+        :param tuple 3-tuple of R, G, B;  each int 0..65535 or float 0..1
+        """
+        for i in range(self.pixel_count):
+            self.set_pixel(i, color)
+
+    def set_all_black(self):
+        """Set all pixels to black."""
+        for i in range(self.pixel_count):
+            self.set_pixel_16bit_value(i, 0, 0, 0)
+
     def set_channel(self, channel_index, value):
         """
         Set the value for the provided channel.
 
-        :param int channel_index: 0..(pixel_count * 3)
+        :param int channel_index: 0..channel_count
         :param int value: 0..65535
         """
         if 0 <= channel_index < (self.channel_count):
             # check if values are in range
-            assert 0 <= value <= 65535
+            if not 0 <= value <= 65535:
+                raise ValueError(
+                    "value {} not in range: 0..65535"
+                )
             # temp = channel_index
             # we change channel order here:
             # buffer channel order is blue, green, red
@@ -376,33 +864,6 @@ class TLC5957(object):
                     self.channel_count
                 )
             )
-
-    def _get_16bit_value_from_buffer(self, buffer_start):
-        return (
-            (self._buffer[buffer_start + 0] << 8) |
-            self._buffer[buffer_start + 1]
-        )
-
-    def _set_16bit_value_in_buffer(self, buffer_start, value):
-        assert 0 <= value <= 65535
-        # print("buffer_start", buffer_start, "value", value)
-        self._buffer[buffer_start + 0] = (value >> 8) & 0xFF
-        self._buffer[buffer_start + 1] = value & 0xFF
-
-    @staticmethod
-    def _convert_01_float_to_16bit_integer(value):
-        """Convert 0..1 Float Value to 16bit (0..65535) Range."""
-        # check if values are in range
-        assert 0 <= value <= 1
-        # convert to 16bit value
-        return int(value * 65535)
-
-    @classmethod
-    def _convert_if_float(cls, value):
-        """Convert if value is Float."""
-        if isinstance(value, float):
-            value = cls._convert_01_float_to_16bit_integer(value)
-        return value
 
     # Define index and length properties to set and get each channel as
     # atomic RGB tuples.  This provides a similar feel as using neopixels.
@@ -427,46 +888,48 @@ class TLC5957(object):
 
     def __setitem__(self, key, value):
         """
-        Set the R, G, B values for the provided channel.
+        Set the R, G, B values for the pixel.
 
-        Specify a 3-tuple of R, G, B values that are each
-        - 16-bit numbers (0-65535)
-        - or 0..1 floats
+        this funciton hase some advanced error checking.
+        it is much slower than the other provided 'bare' variants..
+        but therefor gives clues to what is going wrong.. ;-)
+        this shortcut is identicall to `set_pixel`
+
+        :param int key: 0..(pixel_count)
+        :param tuple 3-tuple of R, G, B;  each int 0..65535 or float 0..1
         """
+        # for a more detailed version with all the debugging code and
+        # comments look at set_pixel
         if 0 <= key < self.pixel_count:
-            # print("value", value)
             # convert to list
             value = list(value)
-            # print("value", value)
-            # print("rep:")
-            # repr(value)
-            # print("check length..")
-            assert len(value) == 3
-            # check if we have float values
-            value[0] = self._convert_if_float(value[0])
-            value[1] = self._convert_if_float(value[1])
-            value[2] = self._convert_if_float(value[2])
-            # print("value", value)
 
-            # check if values are in range
-            assert 0 <= value[0] <= 65535
-            assert 0 <= value[1] <= 65535
-            assert 0 <= value[2] <= 65535
+            if len(value) != self.COLORS_PER_PIXEL:
+                raise IndexError(
+                    "length of value {} does not match COLORS_PER_PIXEL (= {})"
+                    "".format(len(value), self.COLORS_PER_PIXEL)
+                )
+
+            # this modifies value in place..
+            self._check_and_convert(value)
+
             # update buffer
-            # print("key", key, "value", value)
             # we change channel order here:
             # buffer channel order is blue, green, red
-            buffer_pixel_start = key * self.BUFFER_BYTES_PER_PIXEL
-            self._set_16bit_value_in_buffer(
-                buffer_pixel_start + (0 * self.BUFFER_BYTES_PER_COLORS),
-                value[2])
-            self._set_16bit_value_in_buffer(
-                buffer_pixel_start + (1 * self.BUFFER_BYTES_PER_COLORS),
-                value[1])
-            self._set_16bit_value_in_buffer(
-                buffer_pixel_start + (2 * self.BUFFER_BYTES_PER_COLORS),
-                value[0])
+            pixel_start = key * self.COLORS_PER_PIXEL
+            buffer_start = (pixel_start + 0) * self.BUFFER_BYTES_PER_PIXEL
+            self._buffer[buffer_start + 0] = (value[2] >> 8) & 0xFF
+            self._buffer[buffer_start + 1] = value[2] & 0xFF
+            buffer_start = (pixel_start + 1) * self.BUFFER_BYTES_PER_PIXEL
+            self._buffer[buffer_start + 0] = (value[1] >> 8) & 0xFF
+            self._buffer[buffer_start + 1] = value[1] & 0xFF
+            buffer_start = (pixel_start + 2) * self.BUFFER_BYTES_PER_PIXEL
+            self._buffer[buffer_start + 0] = (value[0] >> 8) & 0xFF
+            self._buffer[buffer_start + 1] = value[0] & 0xFF
         else:
-            raise IndexError("index {} out of range".format(key))
+            raise IndexError(
+                "index {} out of range [0..{}]"
+                "".format(key, self.pixel_count)
+            )
 
 ##########################################
