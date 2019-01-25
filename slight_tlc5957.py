@@ -363,11 +363,11 @@ class TLC5957(object):
         # move value to position
         value = value << offset
         # calculate header start
-        header_start = chip_index * self.CHIP_BUFFER_LENGTH
+        header_start = chip_index * self.CHIP_BUFFER_BYTE_COUNT
         # get chip header
         header = self._get_48bit_value_from_buffer(header_start)
-        # print("{:032b}".format(header))
-        # 0xFFFFFFFF == 0b11111111111111111111111111111111
+        # print("{:048b}".format(header))
+        # 0xFFFFFFFFFFFF == 0b11111111111111111111111111111111....
         # create/move mask
         mask = field["mask"] << offset
         # clear
