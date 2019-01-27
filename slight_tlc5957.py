@@ -98,8 +98,8 @@ class TLC5957(object):
     PIXEL_PER_CHIP = 16
     CHANNEL_PER_CHIP = COLORS_PER_PIXEL * PIXEL_PER_CHIP
 
-    BUFFER_BYTES_PER_COLORS = 2
-    BUFFER_BYTES_PER_PIXEL = BUFFER_BYTES_PER_COLORS * COLORS_PER_PIXEL
+    BUFFER_BYTES_PER_COLOR = 2
+    BUFFER_BYTES_PER_PIXEL = BUFFER_BYTES_PER_COLOR * COLORS_PER_PIXEL
 
     CHIP_BUFFER_BIT_COUNT = 48
     CHIP_BUFFER_BYTE_COUNT = CHIP_BUFFER_BIT_COUNT // 8
@@ -917,13 +917,13 @@ class TLC5957(object):
             # we change channel order here:
             # buffer channel order is blue, green, red
             pixel_start = key * self.COLORS_PER_PIXEL
-            buffer_start = (pixel_start + 0) * self.BUFFER_BYTES_PER_PIXEL
+            buffer_start = (pixel_start + 0) * self.BUFFER_BYTES_PER_COLOR
             self._buffer[buffer_start + 0] = (value[2] >> 8) & 0xFF
             self._buffer[buffer_start + 1] = value[2] & 0xFF
-            buffer_start = (pixel_start + 1) * self.BUFFER_BYTES_PER_PIXEL
+            buffer_start = (pixel_start + 1) * self.BUFFER_BYTES_PER_COLOR
             self._buffer[buffer_start + 0] = (value[1] >> 8) & 0xFF
             self._buffer[buffer_start + 1] = value[1] & 0xFF
-            buffer_start = (pixel_start + 2) * self.BUFFER_BYTES_PER_PIXEL
+            buffer_start = (pixel_start + 2) * self.BUFFER_BYTES_PER_COLOR
             self._buffer[buffer_start + 0] = (value[0] >> 8) & 0xFF
             self._buffer[buffer_start + 1] = value[0] & 0xFF
         else:

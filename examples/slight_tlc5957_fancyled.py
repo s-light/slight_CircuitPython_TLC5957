@@ -57,7 +57,7 @@ latch.direction = digitalio.Direction.OUTPUT
 ##########################################
 print(42 * '*')
 print("define pixel array / init TLC5957")
-num_leds = 16
+num_leds = 32
 pixels = slight_tlc5957.TLC5957(
     spi=spi,
     latch=latch,
@@ -99,7 +99,7 @@ while True:
         # Load each pixel's color from the palette using an offset, run it
         # through the gamma function, pack RGB value and assign to pixel.
         color = fancyled.palette_lookup(palette, offset + i / num_leds)
-        color = fancyled.gamma_adjust(color, brightness=0.01)
+        color = fancyled.gamma_adjust(color, brightness=1.0)
         pixels[i] = color
     pixels.show()
 
