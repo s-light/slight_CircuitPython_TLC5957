@@ -749,6 +749,7 @@ class TLC5957(object):
             each int 0..65535 or float 0..1
         """
         if 0 <= pixel_index < self.pixel_count:
+            # print("pixel_index", pixel_index)
             # print("value", value)
             # convert to list
             value = list(value)
@@ -789,19 +790,19 @@ class TLC5957(object):
             #     pixel_start + 2,
             #     value[0])
             # optimize2
-            buffer_start = (pixel_start + 0) * self.BUFFER_BYTES_PER_PIXEL
+            buffer_start = (pixel_start + 0) * self.BUFFER_BYTES_PER_COLOR
             self._buffer[buffer_start + 0] = (value[2] >> 8) & 0xFF
             self._buffer[buffer_start + 1] = value[2] & 0xFF
-            buffer_start = (pixel_start + 1) * self.BUFFER_BYTES_PER_PIXEL
+            buffer_start = (pixel_start + 1) * self.BUFFER_BYTES_PER_COLOR
             self._buffer[buffer_start + 0] = (value[1] >> 8) & 0xFF
             self._buffer[buffer_start + 1] = value[1] & 0xFF
-            buffer_start = (pixel_start + 2) * self.BUFFER_BYTES_PER_PIXEL
+            buffer_start = (pixel_start + 2) * self.BUFFER_BYTES_PER_COLOR
             self._buffer[buffer_start + 0] = (value[0] >> 8) & 0xFF
             self._buffer[buffer_start + 1] = value[0] & 0xFF
         else:
             raise IndexError(
                 "index {} out of range [0..{}]"
-                "".format(pixel_index, self.pixel_count)
+                "".format(pixel_index, self.pixel_count-1)
             )
 
     def set_pixel_all_16bit_value(self, value_r, value_g, value_b):
@@ -929,7 +930,7 @@ class TLC5957(object):
         else:
             raise IndexError(
                 "index {} out of range [0..{}]"
-                "".format(key, self.pixel_count)
+                "".format(key, self.pixel_count-1)
             )
 
 ##########################################
