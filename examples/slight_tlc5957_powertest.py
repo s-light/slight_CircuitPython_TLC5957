@@ -106,5 +106,6 @@ while True:
             )
         )
         pixels.set_pixel_all((new_brightness, new_brightness, new_brightness))
+        pixels.show()
         # prepare new input
         print("\nenter new brightness (0..1): ")
