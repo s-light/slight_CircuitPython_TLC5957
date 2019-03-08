@@ -2,13 +2,12 @@
 # -*- coding: utf-8 -*-
 # CircuitPython
 
-"""TLC5957 & FancyLED."""
+"""Power Test TLC5957."""
 
 __doc__ = """
-TLC5957 & FancyLED.
+Power Test your TLC5957 Board.
 
-this is an example for combining the TLC5957 library with FancyLED.
-Enjoy the colors :-)
+test your TLC5957 based Board for power consumption.
 """
 
 import board
@@ -16,9 +15,9 @@ import board
 import bitbangio
 import digitalio
 import pulseio
+import supervisor
 
 import slight_tlc5957
-import adafruit_fancyled.adafruit_fancyled as fancyled
 
 ##########################################
 print(
@@ -47,8 +46,12 @@ spi = bitbangio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
 # maximum frequency is currently hardcoded to 6MHz
 # https://github.com/adafruit/circuitpython/blob/master/ports/atmel-samd/common-hal/pulseio/PWMOut.c#L119
 gsclk_freqency = (6000 * 1000)  # 6MHz
+# gsclk_freqency = (2 * 1000)  # 2kHz
 gsclk = pulseio.PWMOut(
-    board.D9, duty_cycle=(2 ** 15), frequency=gsclk_freqency)
+    board.D9,
+    duty_cycle=(2 ** 15),
+    frequency=gsclk_freqency,
+    variable_frequency=True)
 print("gsclk.frequency: {:}MHz".format(gsclk.frequency / (1000*1000)))
 
 latch = digitalio.DigitalInOut(board.D7)
@@ -57,7 +60,7 @@ latch.direction = digitalio.Direction.OUTPUT
 ##########################################
 print(42 * '*')
 print("define pixel array / init TLC5957")
-num_leds = 32
+num_leds = 16*2
 pixels = slight_tlc5957.TLC5957(
     spi=spi,
     latch=latch,
@@ -69,46 +72,39 @@ pixels = slight_tlc5957.TLC5957(
 
 print("pixel_count", pixels.pixel_count)
 print("chip_count", pixels.chip_count)
-print("channel_count", pixels.channel_count)
-
 
 ##########################################
-# helper function
-
-
-##########################################
-# Declare a 6-element RGB rainbow palette
-palette = [
-    fancyled.CRGB(1.0, 0.0, 0.0),  # Red
-    fancyled.CRGB(0.5, 0.5, 0.0),  # Yellow
-    fancyled.CRGB(0.0, 1.0, 0.0),  # Green
-    fancyled.CRGB(0.0, 0.5, 0.5),  # Cyan
-    fancyled.CRGB(0.0, 0.0, 1.0),  # Blue
-    fancyled.CRGB(0.5, 0.0, 0.5),  # Magenta
-]
-
-# Positional offset into color palette to get it to 'spin'
-offset = 0
-
-##########################################
-# main loop
 print(42 * '*')
-print("rainbow loop")
-while True:
-    for i in range(num_leds):
-        # Load each pixel's color from the palette using an offset, run it
-        # through the gamma function, pack RGB value and assign to pixel.
-        # color = fancyled.palette_lookup(palette, offset + i / num_leds)
-        brightness = 0.2
-        color_offset = offset
-        if i % 2 == 0:
-            color_offset = offset + 0.5
-            # brightness = 0.1
-        if i >= num_leds/2:
-            brightness = 0.1
-        color = fancyled.palette_lookup(palette, color_offset)
-        color = fancyled.gamma_adjust(color, brightness=brightness)
-        pixels[i] = color
-    pixels.show()
+print("set colors")
+# for index in range(4):
+#     # pixels[index] = (0.0, 0.0, 0.00002)
+#     pixels[index] = (1, 1, 1)
+pixels.set_pixel_all((0.1, 0.1, 0.1))
+# for i in range(num_leds):
+#     # pixels[i] = (0.1, 0.1, 0.1)
+#     pixels.set_pixel(i, (0.1, 0.1, 0.1))
+pixels.show()
 
-    offset += 0.005  # Bigger number = faster spin
+##########################################
+print(42 * '*')
+print("loop..")
+
+if supervisor.runtime.serial_connected:
+    print("you can change the brightness:")
+    print("new brightness (0..1): ")
+while True:
+    if supervisor.runtime.serial_bytes_available:
+        new_value = input()
+        new_brightness = gsclk.frequency
+        try:
+            new_brightness = float(new_value)
+        except ValueError as e:
+            print("Exception: ", e)
+        print(
+            "calculated brightness: {:}".format(
+                new_brightness
+            )
+        )
+        pixels.set_pixel_all((new_brightness, new_brightness, new_brightness))
+        # prepare new input
+        print("\nenter new brightness (0..1): ")
