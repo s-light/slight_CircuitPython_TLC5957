@@ -377,7 +377,7 @@ class TLC5957(object):
         self._buffer_fc = bytearray(
             self.CHIP_BUFFER_BYTE_COUNT * self.chip_count)
         self._init_buffer_fc()
-        # self.update_fc()
+        self.update_fc()
         # self.print_buffer_fc()
 
         # write initial 0 values
@@ -664,6 +664,7 @@ class TLC5957(object):
                 print(ftemp.format(field_value=item), end="")
             print("")
 
+
     def set_fc_CC(
         self,
         chip_index=0,
@@ -694,21 +695,30 @@ class TLC5957(object):
         CCB=_FC_FIELDS['CCB']['default'],
     ):
         for chip_index in range(self.chip_count):
-            self.set_fc_bits_in_buffer(
+            self.set_fc_CC(
                 chip_index=chip_index,
-                field=self._FC_FIELDS["CCR"],
-                value=CCR
+                CCR=CCR,
+                CCG=CCG,
+                CCB=CCB,
             )
-            self.set_fc_bits_in_buffer(
-                chip_index=chip_index,
-                field=self._FC_FIELDS["CCG"],
-                value=CCG
-            )
-            self.set_fc_bits_in_buffer(
-                chip_index=chip_index,
-                field=self._FC_FIELDS["CCB"],
-                value=CCB
-            )
+
+    def set_fc_BC(
+        self,
+        chip_index=0,
+        BC=_FC_FIELDS['BC']['default'],
+    ):
+        self.set_fc_bits_in_buffer(
+            chip_index=chip_index,
+            field=self._FC_FIELDS["BC"],
+            value=BC,
+        )
+
+    def set_fc_BC_all(
+        self,
+        BC=_FC_FIELDS['BC']['default'],
+    ):
+        for chip_index in range(self.chip_count):
+            self.set_fc_BC(chip_index=chip_index, BC=BC)
 
     ##########################################
     # GS things

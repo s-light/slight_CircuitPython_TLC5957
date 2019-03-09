@@ -96,12 +96,6 @@ print(42 * '*')
 print("fc things")
 pixels.print_buffer_fc()
 
-# for i in range(pixels.chip_count):
-#     pixels.set_fc_bits_in_buffer(
-#         chip_index=i,
-#         field=slight_tlc5957.TLC5957._FC_FIELDS["CCR"],
-#         value=value_CC
-#     )
 # value_CC = 0x000
 # value_CC = 0x001
 # value_CC = 0x010
@@ -109,6 +103,11 @@ pixels.print_buffer_fc()
 # value_CC = 0x150
 value_CC = 0x1FF
 pixels.set_fc_CC_all(value_CC, value_CC, value_CC)
+
+# pixels.set_fc_BC_all(0x0)
+# pixels.set_fc_BC_all(0x4)
+pixels.set_fc_BC_all(0x7)
+
 pixels.print_buffer_fc()
 pixels.update_fc()
 ##########################################
