@@ -108,6 +108,8 @@ pixels.set_fc_CC_all(value_CC, value_CC, value_CC)
 # pixels.set_fc_BC_all(0x4)
 pixels.set_fc_BC_all(0x7)
 
+pixels.set_fc_ESPWM_all(enable=True)
+
 pixels.print_buffer_fc()
 pixels.update_fc()
 ##########################################
