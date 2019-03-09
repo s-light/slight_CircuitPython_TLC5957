@@ -10,6 +10,8 @@ Power Test your TLC5957 Board.
 test your TLC5957 based Board for power consumption.
 """
 
+import time
+
 import board
 # import busio
 import bitbangio
@@ -79,12 +81,38 @@ print("set colors")
 # for index in range(4):
 #     # pixels[index] = (0.0, 0.0, 0.00002)
 #     pixels[index] = (1, 1, 1)
-pixels.set_pixel_all((0.1, 0.1, 0.1))
+pixels.set_pixel_all((0.01, 0.1, 0.01))
 # for i in range(num_leds):
 #     # pixels[i] = (0.1, 0.1, 0.1)
 #     pixels.set_pixel(i, (0.1, 0.1, 0.1))
 pixels.show()
+time.sleep(1)
+pixels.set_pixel_all((0.1, 0.1, 0.1))
+pixels.show()
 
+##########################################
+# value_CC = 0x000
+# value_CC = 0x100
+value_CC = 0x040
+# value_CC = 0x1FF
+for i in range(pixels.chip_count):
+    pixels.set_fc_bits_in_buffer(
+        chip_index=i,
+        field=slight_tlc5957.TLC5957._FC_FIELDS["CCR"],
+        value=value_CC
+    )
+    pixels.set_fc_bits_in_buffer(
+        chip_index=i,
+        field=slight_tlc5957.TLC5957._FC_FIELDS["CCG"],
+        value=value_CC
+    )
+    pixels.set_fc_bits_in_buffer(
+        chip_index=i,
+        field=slight_tlc5957.TLC5957._FC_FIELDS["CCB"],
+        value=value_CC
+    )
+pixels.print_buffer_fc()
+# pixels.update_fc()
 ##########################################
 print(42 * '*')
 print("loop..")

@@ -336,47 +336,6 @@ class TLC5957(object):
 
     ##########################################
 
-    def set_fc_bits_in_buffer(
-            self,
-            *,
-            chip_index=0,
-            part_bit_offset=0,
-            field={"mask": 0, "length": 0, "offset": 0, "default": 0},
-            value=0
-    ):
-        """Set function control bits in buffer."""
-        # print(
-        #     "chip_index={} "
-        #     "part_bit_offset={} "
-        #     "field={} "
-        #     "value={} "
-        #     "".format(
-        #         chip_index,
-        #         part_bit_offset,
-        #         field,
-        #         value
-        #     )
-        # )
-        offset = part_bit_offset + field["offset"]
-        # restrict value
-        value &= field["mask"]
-        # move value to position
-        value = value << offset
-        # calculate header start
-        header_start = chip_index * self.CHIP_BUFFER_BYTE_COUNT
-        # get chip header
-        header = self._get_48bit_value_from_buffer(header_start)
-        # print("{:048b}".format(header))
-        # 0xFFFFFFFFFFFF == 0b11111111111111111111111111111111....
-        # create/move mask
-        mask = field["mask"] << offset
-        # clear
-        header &= ~mask
-        # set
-        header |= value
-        # write header back
-        self._set_48bit_value_in_buffer(header_start, header)
-
     ##########################################
 
     def __init__(
@@ -414,11 +373,17 @@ class TLC5957(object):
             self.CHIP_GS_BUFFER_BYTE_COUNT * self.chip_count)
         # print("CHIP_GS_BUFFER_BYTE_COUNT", self.CHIP_GS_BUFFER_BYTE_COUNT)
         # print("_buffer", self._buffer)
+
+        self._buffer_fc = bytearray(
+            self.CHIP_BUFFER_BYTE_COUNT * self.chip_count)
+        self._init_buffer_fc()
+        self.print_buffer_fc()
+
         # write initial 0 values
         self.show()
         self.show()
 
-    def _write_buffer(self):
+    def _write_buffer_GS(self):
         # Write out the current state to the shift register.
         buffer_start = 0
         write_count = (
@@ -459,21 +424,68 @@ class TLC5957(object):
             # special
             if index == self.PIXEL_PER_CHIP - 1:
                 self._write_buffer_with_function_command(
-                    self._FC__LATGS, buffer_start)
+                    self._FC__LATGS, buffer_start, self._buffer)
             else:
                 self._write_buffer_with_function_command(
-                    self._FC__WRTGS, buffer_start)
+                    self._FC__WRTGS, buffer_start, self._buffer)
             buffer_start += 2
+
+    def _write_buffer_FC(self):
+        # Write out the current state to the shift register.
+        buffer_start = 0
+        write_count = (
+            (self.CHIP_BUFFER_BYTE_COUNT * self.chip_count)
+            - self.CHIP_FUNCTION_CMD_BYTE_COUNT)
+
+        # enable FC write
+        self._write_buffer_with_function_command(
+            self._FC__FCWRTEN, buffer_start, self._buffer_fc)
+
+        try:
+            # wait untill we have access to / locked SPI bus
+            while not self._spi.try_lock():
+                pass
+            # configure
+            # 10kHz
+            # baudrate = (10 * 1000)
+            # 1MHz
+            # baudrate = (1000 * 1000)
+            # 10MHz
+            baudrate = (10 * 1000 * 1000)
+            self._spi.configure(
+                baudrate=baudrate, polarity=0, phase=0, bits=8)
+
+            # write data
+            # self._spi.write(
+            #     self._buffer, start=buffer_start, end=write_count)
+
+            # workaround for bitbangio.SPI.write missing start & end
+            buffer_in = bytearray(write_count)
+            self._spi.write_readinto(
+                self._buffer_fc,
+                buffer_in,
+                out_start=buffer_start,
+                out_end=buffer_start + write_count)
+
+        finally:
+            # Ensure the SPI bus is unlocked.
+            self._spi.unlock()
+        buffer_start += write_count
+        # special
+        self._write_buffer_with_function_command(
+            self._FC__WRTFC, buffer_start, self._buffer_fc)
+        # done.
 
     def _write_buffer_with_function_command(
             self,
             function_command,
-            buffer_start):
+            buffer_start,
+            buffer):
         """Bit-Banging SPI write to sync with latch pulse."""
         # combine two 8bit buffer parts to 16bit value
         value = (
-            (self._buffer[buffer_start + 0] << 8) |
-            self._buffer[buffer_start + 1]
+            (buffer[buffer_start + 0] << 8) |
+            buffer[buffer_start + 1]
         )
 
         self._spi_clock.value = 0
@@ -505,24 +517,167 @@ class TLC5957(object):
 
     def show(self):
         """Write out Grayscale Values to chips."""
-        self._write_buffer()
+        self._write_buffer_GS()
+
+    def update_fc(self):
+        """Write out Function_Command Values to chips."""
+        self._write_buffer_FC()
 
     ##########################################
-    # static helpers
+    # FC things
+
+
+    def set_fc_bits_in_buffer(
+            self,
+            *, #noqa
+            chip_index=0,
+            part_bit_offset=0,
+            field={"mask": 0, "length": 0, "offset": 0, "default": 0},
+            value=0
+    ):
+        """Set function control bits in buffer."""
+        # print(
+        #     "chip_index={} "
+        #     "part_bit_offset={} "
+        #     "field={} "
+        #     "value={} "
+        #     "".format(
+        #         chip_index,
+        #         part_bit_offset,
+        #         field,
+        #         value
+        #     )
+        # )
+        offset = part_bit_offset + field["offset"]
+        # restrict value
+        value &= field["mask"]
+        # move value to position
+        value = value << offset
+        # calculate header start
+        header_start = chip_index * self.CHIP_BUFFER_BYTE_COUNT
+        # get chip header
+        header = self._get_48bit_value_from_buffer(
+            self._buffer_fc, header_start)
+        # print("{:048b}".format(header))
+        # 0xFFFFFFFFFFFF == 0b11111111111111111111111111111111....
+        # create/move mask
+        mask = field["mask"] << offset
+        # clear
+        header &= ~mask
+        # set
+        header |= value
+        # write header back
+        self._set_48bit_value_in_buffer(self._buffer_fc, header_start, header)
+
+    def get_fc_bits_in_buffer(
+            self,
+            *, #noqa
+            chip_index=0,
+            part_bit_offset=0,
+            field={"mask": 0, "length": 0, "offset": 0, "default": 0},
+    ):
+        """Get function control bits in buffer."""
+        # print(
+        #     "chip_index={} "
+        #     "part_bit_offset={} "
+        #     "field={} "
+        #     "".format(
+        #         chip_index,
+        #         part_bit_offset,
+        #         field,
+        #     )
+        # )
+        offset = part_bit_offset + field["offset"]
+        # calculate header start
+        header_start = chip_index * self.CHIP_BUFFER_BYTE_COUNT
+        # get chip header
+        header = self._get_48bit_value_from_buffer(
+            self._buffer_fc, header_start)
+        # print("{:048b}".format(header))
+        # 0xFFFFFFFFFFFF == 0b11111111111111111111111111111111....
+        # create/move mask
+        mask = field["mask"] << offset
+        value = header & mask
+        # move value to position
+        value = value >> offset
+        return value
+
+    def _init_buffer_fc(self):
+        value_CC = 0x100
+        for i in range(self.chip_count):
+            for name, field in self._FC_FIELDS.items():
+                self.set_fc_bits_in_buffer(
+                    chip_index=i,
+                    field=field,
+                    value=field["default"]
+                )
+        # self.update_fc()
+
+    def print_buffer_fc(self):
+        print("")
+        result = {}
+        # find longest name
+        # and prepare result
+        max_name_length = 0
+        max_value_bin_length = 0
+        max_value_hex_length = 0
+        for name, content in self._FC_FIELDS.items():
+            result[name] = []
+            if max_name_length < len(name):
+                max_name_length = len(name)
+            if max_value_bin_length < content["length"]:
+                max_value_bin_length = content["length"]
+            mask_as_hex_len = len("{:x}".format(content["mask"]))
+            if max_value_hex_length < mask_as_hex_len:
+                max_value_hex_length = mask_as_hex_len
+
+        # add default
+        for name, field in self._FC_FIELDS.items():
+            result[name].append(field["default"])
+
+        for i in range(self.chip_count):
+            for name, field in self._FC_FIELDS.items():
+                    result[name].append(
+                        self.get_fc_bits_in_buffer(
+                            chip_index=i,
+                            field=field
+                        )
+                    )
+
+        # print
+        ftemp = "{field_name:<" + str(max_name_length)  + "} | "
+        print(ftemp.format(field_name='name/index'), end="")
+        # ftemp = "{field_value:^" + str(max_value_bin_length) + "} | "
+        ftemp = "{field_value:>" + str(max_value_hex_length) + "} | "
+        print(ftemp.format(field_value='def'), end="")
+        for index in range(self.chip_count):
+            # ftemp = "{field_value:^" + str(max_value_bin_length) + "} | "
+            ftemp = "{field_value:^" + str(max_value_hex_length) + "} | "
+            print(ftemp.format(field_value=index), end="")
+        print("")
+        for name, content in result.items():
+            ftemp = "{field_name:<" + str(max_name_length)  + "} | "
+            print(ftemp.format(field_name=name), end="")
+            for item in content:
+                # ftemp = "{field_value:>" + str(max_value_bin_length) + "b} | "
+                ftemp = "{field_value:>" + str(max_value_hex_length) + "x} | "
+                print(ftemp.format(field_value=item), end="")
+            print("")
 
     ##########################################
+    # GS things
 
-    def _get_48bit_value_from_buffer(self, buffer_start):
+    def _get_48bit_value_from_buffer(self, buffer, buffer_start):
         return (
-            (self._buffer[buffer_start + 0] << 40) |
-            (self._buffer[buffer_start + 1] << 32) |
-            (self._buffer[buffer_start + 2] << 24) |
-            (self._buffer[buffer_start + 3] << 16) |
-            (self._buffer[buffer_start + 4] << 8) |
-            self._buffer[buffer_start + 5]
+            (buffer[buffer_start + 0] << 40) |
+            (buffer[buffer_start + 1] << 32) |
+            (buffer[buffer_start + 2] << 24) |
+            (buffer[buffer_start + 3] << 16) |
+            (buffer[buffer_start + 4] << 8) |
+            buffer[buffer_start + 5]
         )
 
-    def _set_48bit_value_in_buffer(self, buffer_start, value):
+    def _set_48bit_value_in_buffer(self, buffer, buffer_start, value):
         if not 0 <= value <= 0xFFFFFFFFFFFF:
             raise ValueError(
                 "value {} not in range: 0..0xFFFFFFFF"
@@ -530,12 +685,12 @@ class TLC5957(object):
             )
         # print("buffer_start", buffer_start, "value", value)
         # self._debug_print_buffer()
-        self._buffer[buffer_start + 0] = (value >> 40) & 0xFF
-        self._buffer[buffer_start + 1] = (value >> 32) & 0xFF
-        self._buffer[buffer_start + 2] = (value >> 24) & 0xFF
-        self._buffer[buffer_start + 3] = (value >> 16) & 0xFF
-        self._buffer[buffer_start + 4] = (value >> 8) & 0xFF
-        self._buffer[buffer_start + 5] = value & 0xFF
+        buffer[buffer_start + 0] = (value >> 40) & 0xFF
+        buffer[buffer_start + 1] = (value >> 32) & 0xFF
+        buffer[buffer_start + 2] = (value >> 24) & 0xFF
+        buffer[buffer_start + 3] = (value >> 16) & 0xFF
+        buffer[buffer_start + 4] = (value >> 8) & 0xFF
+        buffer[buffer_start + 5] = value & 0xFF
 
     # 32bit_value
     # def _get_32bit_value_from_buffer(self, buffer_start):
