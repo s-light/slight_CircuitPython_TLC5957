@@ -377,7 +377,8 @@ class TLC5957(object):
         self._buffer_fc = bytearray(
             self.CHIP_BUFFER_BYTE_COUNT * self.chip_count)
         self._init_buffer_fc()
-        self.print_buffer_fc()
+        # self.update_fc()
+        # self.print_buffer_fc()
 
         # write initial 0 values
         self.show()
@@ -611,7 +612,6 @@ class TLC5957(object):
                     field=field,
                     value=field["default"]
                 )
-        # self.update_fc()
 
     def print_buffer_fc(self):
         print("")
@@ -647,22 +647,68 @@ class TLC5957(object):
         # print
         ftemp = "{field_name:<" + str(max_name_length)  + "} | "
         print(ftemp.format(field_name='name/index'), end="")
-        # ftemp = "{field_value:^" + str(max_value_bin_length) + "} | "
-        ftemp = "{field_value:>" + str(max_value_hex_length) + "} | "
+        ftemp = "{field_value:^" + str(max_value_bin_length) + "} | "
+        # ftemp = "{field_value:>" + str(max_value_hex_length) + "} | "
         print(ftemp.format(field_value='def'), end="")
         for index in range(self.chip_count):
-            # ftemp = "{field_value:^" + str(max_value_bin_length) + "} | "
-            ftemp = "{field_value:^" + str(max_value_hex_length) + "} | "
+            ftemp = "{field_value:^" + str(max_value_bin_length) + "} | "
+            # ftemp = "{field_value:^" + str(max_value_hex_length) + "} | "
             print(ftemp.format(field_value=index), end="")
         print("")
         for name, content in result.items():
             ftemp = "{field_name:<" + str(max_name_length)  + "} | "
             print(ftemp.format(field_name=name), end="")
             for item in content:
-                # ftemp = "{field_value:>" + str(max_value_bin_length) + "b} | "
-                ftemp = "{field_value:>" + str(max_value_hex_length) + "x} | "
+                ftemp = "{field_value:>" + str(max_value_bin_length) + "b} | "
+                # ftemp = "{field_value:>" + str(max_value_hex_length) + "x} | "
                 print(ftemp.format(field_value=item), end="")
             print("")
+
+    def set_fc_CC(
+        self,
+        chip_index=0,
+        CCR=_FC_FIELDS['CCR']['default'],
+        CCG=_FC_FIELDS['CCG']['default'],
+        CCB=_FC_FIELDS['CCB']['default'],
+    ):
+        self.set_fc_bits_in_buffer(
+            chip_index=chip_index,
+            field=self._FC_FIELDS["CCR"],
+            value=CCR
+        )
+        self.set_fc_bits_in_buffer(
+            chip_index=chip_index,
+            field=self._FC_FIELDS["CCG"],
+            value=CCG
+        )
+        self.set_fc_bits_in_buffer(
+            chip_index=chip_index,
+            field=self._FC_FIELDS["CCB"],
+            value=CCB
+        )
+
+    def set_fc_CC_all(
+        self,
+        CCR=_FC_FIELDS['CCR']['default'],
+        CCG=_FC_FIELDS['CCG']['default'],
+        CCB=_FC_FIELDS['CCB']['default'],
+    ):
+        for chip_index in range(self.chip_count):
+            self.set_fc_bits_in_buffer(
+                chip_index=chip_index,
+                field=self._FC_FIELDS["CCR"],
+                value=CCR
+            )
+            self.set_fc_bits_in_buffer(
+                chip_index=chip_index,
+                field=self._FC_FIELDS["CCG"],
+                value=CCG
+            )
+            self.set_fc_bits_in_buffer(
+                chip_index=chip_index,
+                field=self._FC_FIELDS["CCB"],
+                value=CCB
+            )
 
     ##########################################
     # GS things

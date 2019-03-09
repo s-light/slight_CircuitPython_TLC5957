@@ -90,29 +90,27 @@ time.sleep(1)
 pixels.set_pixel_all((0.1, 0.1, 0.1))
 pixels.show()
 
+
 ##########################################
-# value_CC = 0x000
-# value_CC = 0x100
-value_CC = 0x040
-# value_CC = 0x1FF
-for i in range(pixels.chip_count):
-    pixels.set_fc_bits_in_buffer(
-        chip_index=i,
-        field=slight_tlc5957.TLC5957._FC_FIELDS["CCR"],
-        value=value_CC
-    )
-    pixels.set_fc_bits_in_buffer(
-        chip_index=i,
-        field=slight_tlc5957.TLC5957._FC_FIELDS["CCG"],
-        value=value_CC
-    )
-    pixels.set_fc_bits_in_buffer(
-        chip_index=i,
-        field=slight_tlc5957.TLC5957._FC_FIELDS["CCB"],
-        value=value_CC
-    )
+print(42 * '*')
+print("fc things")
 pixels.print_buffer_fc()
-# pixels.update_fc()
+
+# for i in range(pixels.chip_count):
+#     pixels.set_fc_bits_in_buffer(
+#         chip_index=i,
+#         field=slight_tlc5957.TLC5957._FC_FIELDS["CCR"],
+#         value=value_CC
+#     )
+# value_CC = 0x000
+# value_CC = 0x001
+# value_CC = 0x010
+# value_CC = 0x100
+# value_CC = 0x150
+value_CC = 0x1FF
+pixels.set_fc_CC_all(value_CC, value_CC, value_CC)
+pixels.print_buffer_fc()
+pixels.update_fc()
 ##########################################
 print(42 * '*')
 print("loop..")
