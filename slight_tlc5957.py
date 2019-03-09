@@ -720,6 +720,24 @@ class TLC5957(object):
         for chip_index in range(self.chip_count):
             self.set_fc_BC(chip_index=chip_index, BC=BC)
 
+    def set_fc_ESPWM(
+        self,
+        chip_index=0,
+        ESPWM=_FC_FIELDS['ESPWM']['default'],
+    ):
+        self.set_fc_bits_in_buffer(
+            chip_index=chip_index,
+            field=self._FC_FIELDS["ESPWM"],
+            value=ESPWM,
+        )
+
+    def set_fc_ESPWM_all(
+        self,
+        ESPWM=_FC_FIELDS['ESPWM']['default'],
+    ):
+        for chip_index in range(self.chip_count):
+            self.set_fc_ESPWM(chip_index=chip_index, ESPWM=ESPWM)
+
     ##########################################
     # GS things
 
