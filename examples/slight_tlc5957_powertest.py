@@ -99,9 +99,9 @@ pixels.print_buffer_fc()
 # value_CC = 0x000
 # value_CC = 0x001
 # value_CC = 0x010
-# value_CC = 0x100
+value_CC = 0x100
 # value_CC = 0x150
-value_CC = 0x1FF
+# value_CC = 0x1FF
 pixels.set_fc_CC_all(value_CC, value_CC, value_CC)
 
 # pixels.set_fc_BC_all(0x0)
