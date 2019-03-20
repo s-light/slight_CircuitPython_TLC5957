@@ -879,13 +879,13 @@ class TLC5957(object):
         :param int value_b: 0..65535
         """
         pixel_start = pixel_index * self.COLORS_PER_PIXEL
-        buffer_start = (pixel_start + 0) * self.BUFFER_BYTES_PER_PIXEL
+        buffer_start = (pixel_start + 0) * self.BUFFER_BYTES_PER_COLOR
         self._buffer[buffer_start + 0] = (value_b >> 8) & 0xFF
         self._buffer[buffer_start + 1] = value_b & 0xFF
-        buffer_start = (pixel_start + 1) * self.BUFFER_BYTES_PER_PIXEL
+        buffer_start = (pixel_start + 1) * self.BUFFER_BYTES_PER_COLOR
         self._buffer[buffer_start + 0] = (value_g >> 8) & 0xFF
         self._buffer[buffer_start + 1] = value_g & 0xFF
-        buffer_start = (pixel_start + 2) * self.BUFFER_BYTES_PER_PIXEL
+        buffer_start = (pixel_start + 2) * self.BUFFER_BYTES_PER_COLOR
         self._buffer[buffer_start + 0] = (value_r >> 8) & 0xFF
         self._buffer[buffer_start + 1] = value_r & 0xFF
 
@@ -905,13 +905,13 @@ class TLC5957(object):
         value_g = int(value_g * 65535)
         value_b = int(value_b * 65535)
         pixel_start = pixel_index * self.COLORS_PER_PIXEL
-        buffer_start = (pixel_start + 0) * self.BUFFER_BYTES_PER_PIXEL
+        buffer_start = (pixel_start + 0) * self.BUFFER_BYTES_PER_COLOR
         self._buffer[buffer_start + 0] = (value_b >> 8) & 0xFF
         self._buffer[buffer_start + 1] = value_b & 0xFF
-        buffer_start = (pixel_start + 1) * self.BUFFER_BYTES_PER_PIXEL
+        buffer_start = (pixel_start + 1) * self.BUFFER_BYTES_PER_COLOR
         self._buffer[buffer_start + 0] = (value_g >> 8) & 0xFF
         self._buffer[buffer_start + 1] = value_g & 0xFF
-        buffer_start = (pixel_start + 2) * self.BUFFER_BYTES_PER_PIXEL
+        buffer_start = (pixel_start + 2) * self.BUFFER_BYTES_PER_COLOR
         self._buffer[buffer_start + 0] = (value_r >> 8) & 0xFF
         self._buffer[buffer_start + 1] = value_r & 0xFF
 
@@ -927,13 +927,13 @@ class TLC5957(object):
         :param int color: 3-tuple of R, G, B;  0..65535
         """
         pixel_start = pixel_index * self.COLORS_PER_PIXEL
-        buffer_start = (pixel_start + 0) * self.BUFFER_BYTES_PER_PIXEL
+        buffer_start = (pixel_start + 0) * self.BUFFER_BYTES_PER_COLOR
         self._buffer[buffer_start + 0] = (color[2] >> 8) & 0xFF
         self._buffer[buffer_start + 1] = color[2] & 0xFF
-        buffer_start = (pixel_start + 1) * self.BUFFER_BYTES_PER_PIXEL
+        buffer_start = (pixel_start + 1) * self.BUFFER_BYTES_PER_COLOR
         self._buffer[buffer_start + 0] = (color[1] >> 8) & 0xFF
         self._buffer[buffer_start + 1] = color[1] & 0xFF
-        buffer_start = (pixel_start + 2) * self.BUFFER_BYTES_PER_PIXEL
+        buffer_start = (pixel_start + 2) * self.BUFFER_BYTES_PER_COLOR
         self._buffer[buffer_start + 0] = (color[0] >> 8) & 0xFF
         self._buffer[buffer_start + 1] = color[0] & 0xFF
 
@@ -955,13 +955,13 @@ class TLC5957(object):
         # calculate pixel_start
         pixel_start = pixel_index * self.COLORS_PER_PIXEL
         # set values
-        buffer_start = (pixel_start + 0) * self.BUFFER_BYTES_PER_PIXEL
+        buffer_start = (pixel_start + 0) * self.BUFFER_BYTES_PER_COLOR
         self._buffer[buffer_start + 0] = (value_b >> 8) & 0xFF
         self._buffer[buffer_start + 1] = value_b & 0xFF
-        buffer_start = (pixel_start + 1) * self.BUFFER_BYTES_PER_PIXEL
+        buffer_start = (pixel_start + 1) * self.BUFFER_BYTES_PER_COLOR
         self._buffer[buffer_start + 0] = (value_g >> 8) & 0xFF
         self._buffer[buffer_start + 1] = value_g & 0xFF
-        buffer_start = (pixel_start + 2) * self.BUFFER_BYTES_PER_PIXEL
+        buffer_start = (pixel_start + 2) * self.BUFFER_BYTES_PER_COLOR
         self._buffer[buffer_start + 0] = (value_r >> 8) & 0xFF
         self._buffer[buffer_start + 1] = value_r & 0xFF
 
