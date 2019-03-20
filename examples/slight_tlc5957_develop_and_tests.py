@@ -72,6 +72,14 @@ pixels = slight_tlc5957.TLC5957(
 print("pixel_count", pixels.pixel_count)
 print("chip_count", pixels.chip_count)
 
+##########################################
+# setup chip configuration
+pixels.set_fc_CC_all(0x1FF, 0x1FF, 0x0FF)
+pixels.set_fc_BC_all(0x4)
+pixels.set_fc_ESPWM_all(enable=True)
+pixels.print_buffer_fc()
+pixels.update_fc()
+
 
 ##########################################
 def set_some_colors():

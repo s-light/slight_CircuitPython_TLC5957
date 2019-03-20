@@ -73,6 +73,7 @@ print("channel_count", pixels.channel_count)
 
 
 ##########################################
+# setup chip configuration
 pixels.set_fc_CC_all(0x1FF, 0x1FF, 0x0FF)
 pixels.set_fc_BC_all(0x4)
 pixels.set_fc_ESPWM_all(enable=True)
