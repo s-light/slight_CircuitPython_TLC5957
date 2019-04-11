@@ -237,7 +237,6 @@ class TLC5957(object):
     # 44      PokerTransMode  0           Poker trans mode enable bit.
     #                                       (0 = disabled, 1 = enabled)
     # 45-47   LGSE2           000         first line performance improvment
-    # TODO(s-light): add function control options
 
     # _FC_CHIP_BUFFER_BIT_OFFSET = _BC_BIT_COUNT
     _FC_BIT_COUNT = CHIP_BUFFER_BIT_COUNT
