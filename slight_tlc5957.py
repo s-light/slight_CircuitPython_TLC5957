@@ -428,7 +428,7 @@ class TLC5957(object):
             else:
                 self._write_buffer_with_function_command(
                     self._FC__WRTGS, buffer_start, self._buffer)
-            buffer_start += 2
+            buffer_start += self.CHIP_FUNCTION_CMD_BYTE_COUNT
 
     def _write_buffer_FC(self):
         # Write out the current state to the shift register.
@@ -491,7 +491,7 @@ class TLC5957(object):
         self._spi_clock.value = 0
         self._spi_mosi.value = 0
         self._latch.value = 0
-        latch_start_index = self.PIXEL_PER_CHIP - function_command
+        latch_start_index = self.CHIP_FUNCTION_CMD_BIT_COUNT - function_command
         for index in range(self.CHIP_FUNCTION_CMD_BIT_COUNT):
             if latch_start_index == index:
                 self._latch.value = 1
@@ -1082,7 +1082,7 @@ class TLC5957(object):
             if pixel_index_offset == 2:
                 channel_index -= 2
             # print("{:>2} → {:>2}".format(temp, channel_index))
-            buffer_index = channel_index * self.BUFFER_BYTES_PER_COLORS
+            buffer_index = channel_index * self.BUFFER_BYTES_PER_COLOR
             self._set_16bit_value_in_buffer(buffer_index, value)
             # self._set_16bit_value_in_buffer(
             #     self.COLORS_PER_PIXEL - channel_index, value)
