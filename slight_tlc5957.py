@@ -526,7 +526,6 @@ class TLC5957(object):
     ##########################################
     # FC things
 
-
     def set_fc_bits_in_buffer(
             self,
             *, #noqa
@@ -603,7 +602,6 @@ class TLC5957(object):
         return value
 
     def _init_buffer_fc(self):
-        value_CC = 0x100
         for i in range(self.chip_count):
             for name, field in self._FC_FIELDS.items():
                 self.set_fc_bits_in_buffer(
@@ -612,65 +610,84 @@ class TLC5957(object):
                     value=field["default"]
                 )
 
-    def print_buffer_fc(self):
-        print("")
-        result = {}
+    def _print_buffer_fc__find_max_length(self):
         # find longest name
         # and prepare result
-        max_name_length = 0
-        max_value_bin_length = 0
-        max_value_hex_length = 0
+        max_length = {
+            'name': 0,
+            'value_bin': 0,
+            'value_hex': 0,
+        }
         for name, content in self._FC_FIELDS.items():
-            result[name] = []
-            if max_name_length < len(name):
-                max_name_length = len(name)
-            if max_value_bin_length < content["length"]:
-                max_value_bin_length = content["length"]
+            if max_length['name'] < len(name):
+                max_length['name'] = len(name)
+            if max_length['value_bin'] < content["length"]:
+                max_length['value_bin'] = content["length"]
             mask_as_hex_len = len("{:x}".format(content["mask"]))
-            if max_value_hex_length < mask_as_hex_len:
-                max_value_hex_length = mask_as_hex_len
+            if max_length['value_hex'] < mask_as_hex_len:
+                max_length['value_hex'] = mask_as_hex_len
+        return max_length
 
-        # add default
+    def _print_buffer_fc__prepare_results(self):
+        result = {}
+        # prepare result
         for name, field in self._FC_FIELDS.items():
+            result[name] = []
+            # add default
             result[name].append(field["default"])
 
         for i in range(self.chip_count):
             for name, field in self._FC_FIELDS.items():
-                    result[name].append(
-                        self.get_fc_bits_in_buffer(
-                            chip_index=i,
-                            field=field
-                        )
+                result[name].append(
+                    self.get_fc_bits_in_buffer(
+                        chip_index=i,
+                        field=field
                     )
+                )
+        return result
+
+    def print_buffer_fc(self):
+        """Print internal function_command buffer content."""
+        print("")
+        result = self._print_buffer_fc__prepare_results()
+        max_length = self._print_buffer_fc__find_max_length()
 
         # print
-        ftemp = "{field_name:<" + str(max_name_length)  + "} | "
+        ftemp = "{field_name:<" + str(max_length['name']) + "} | "
         print(ftemp.format(field_name='name/index'), end="")
-        ftemp = "{field_value:^" + str(max_value_bin_length) + "} | "
-        # ftemp = "{field_value:>" + str(max_value_hex_length) + "} | "
+        ftemp = "{field_value:^" + str(max_length['value_bin']) + "} | "
+        # ftemp = "{field_value:>" + str(max_length['value_hex']) + "} | "
         print(ftemp.format(field_value='def'), end="")
         for index in range(self.chip_count):
-            ftemp = "{field_value:^" + str(max_value_bin_length) + "} | "
-            # ftemp = "{field_value:^" + str(max_value_hex_length) + "} | "
+            ftemp = "{field_value:^" + str(max_length['value_bin']) + "} | "
+            # ftemp = "{field_value:^" + str(max_length['value_hex']) + "} | "
             print(ftemp.format(field_value=index), end="")
         print("")
         for name, content in result.items():
-            ftemp = "{field_name:<" + str(max_name_length)  + "} | "
+            ftemp = "{field_name:<" + str(max_length['name']) + "} | "
             print(ftemp.format(field_name=name), end="")
             for item in content:
-                ftemp = "{field_value:>" + str(max_value_bin_length) + "b} | "
-                # ftemp = "{field_value:>" + str(max_value_hex_length) + "x} | "
+                ftemp = (
+                    "{field_value:>" +
+                    str(max_length['value_bin']) +
+                    "b} | "
+                )
+                # ftemp = (
+                #     "{field_value:>" +
+                #     str(max_length['value_hex']) +
+                #     "x} | "
+                # )
                 print(ftemp.format(field_value=item), end="")
             print("")
 
-
     def set_fc_CC(
-        self,
-        chip_index=0,
-        CCR=_FC_FIELDS['CCR']['default'],
-        CCG=_FC_FIELDS['CCG']['default'],
-        CCB=_FC_FIELDS['CCB']['default'],
+            self,
+            chip_index=0,
+            CCR=_FC_FIELDS['CCR']['default'],
+            CCG=_FC_FIELDS['CCG']['default'],
+            CCB=_FC_FIELDS['CCB']['default'],
     ):
+        """Set color control for R, G, B."""
         self.set_fc_bits_in_buffer(
             chip_index=chip_index,
             field=self._FC_FIELDS["CCR"],
@@ -688,11 +705,12 @@ class TLC5957(object):
         )
 
     def set_fc_CC_all(
-        self,
-        CCR=_FC_FIELDS['CCR']['default'],
-        CCG=_FC_FIELDS['CCG']['default'],
-        CCB=_FC_FIELDS['CCB']['default'],
+            self,
+            CCR=_FC_FIELDS['CCR']['default'],
+            CCG=_FC_FIELDS['CCG']['default'],
+            CCB=_FC_FIELDS['CCB']['default'],
     ):
+        """Set color control for R, G, B for all chips."""
         for chip_index in range(self.chip_count):
             self.set_fc_CC(
                 chip_index=chip_index,
@@ -702,10 +720,11 @@ class TLC5957(object):
             )
 
     def set_fc_BC(
-        self,
-        chip_index=0,
-        BC=_FC_FIELDS['BC']['default'],
+            self,
+            chip_index=0,
+            BC=_FC_FIELDS['BC']['default'],
     ):
+        """Set brightness control."""
         self.set_fc_bits_in_buffer(
             chip_index=chip_index,
             field=self._FC_FIELDS["BC"],
@@ -713,17 +732,19 @@ class TLC5957(object):
         )
 
     def set_fc_BC_all(
-        self,
-        BC=_FC_FIELDS['BC']['default'],
+            self,
+            BC=_FC_FIELDS['BC']['default'],
     ):
+        """Set brightness control for all chips."""
         for chip_index in range(self.chip_count):
             self.set_fc_BC(chip_index=chip_index, BC=BC)
 
     def set_fc_ESPWM(
-        self,
-        chip_index=0,
-        enable=False,
+            self,
+            chip_index=0,
+            enable=False,
     ):
+        """Set ESPWM."""
         self.set_fc_bits_in_buffer(
             chip_index=chip_index,
             field=self._FC_FIELDS["ESPWM"],
@@ -731,16 +752,18 @@ class TLC5957(object):
         )
 
     def set_fc_ESPWM_all(
-        self,
-        enable=False,
+            self,
+            enable=False,
     ):
+        """Set ESPWM for all chips."""
         for chip_index in range(self.chip_count):
             self.set_fc_ESPWM(chip_index=chip_index, enable=enable)
 
     ##########################################
     # GS things
 
-    def _get_48bit_value_from_buffer(self, buffer, buffer_start):
+    @staticmethod
+    def _get_48bit_value_from_buffer(buffer, buffer_start):
         return (
             (buffer[buffer_start + 0] << 40) |
             (buffer[buffer_start + 1] << 32) |
@@ -750,7 +773,8 @@ class TLC5957(object):
             buffer[buffer_start + 5]
         )
 
-    def _set_48bit_value_in_buffer(self, buffer, buffer_start, value):
+    @staticmethod
+    def _set_48bit_value_in_buffer(buffer, buffer_start, value):
         if not 0 <= value <= 0xFFFFFFFFFFFF:
             raise ValueError(
                 "value {} not in range: 0..0xFFFFFFFF"
