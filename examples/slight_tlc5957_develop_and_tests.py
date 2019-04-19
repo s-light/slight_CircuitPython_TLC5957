@@ -74,6 +74,9 @@ print("chip_count", pixels.chip_count)
 
 ##########################################
 # setup chip configuration
+pixels.print_buffer_fc()
+pixels.print_buffer_fc_raw()
+print("set fc things..")
 pixels.set_fc_CC_all(0x1FF, 0x1FF, 0x0FF)
 pixels.set_fc_BC_all(0x4)
 pixels.set_fc_ESPWM_all(enable=True)
