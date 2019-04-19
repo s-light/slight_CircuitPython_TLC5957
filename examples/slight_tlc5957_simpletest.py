@@ -64,7 +64,8 @@ buffer_index = (
     pixel_index * pixels.COLORS_PER_PIXEL * pixels.BUFFER_BYTES_PER_COLOR)
 
 while True:
-    pixels[3] = (0, 100, fade_value)
+    # pixels[3] = (0, 100, fade_value)
+    pixels.set_pixel_all_16bit_value(1, 1, 1)
     pixels.show()
     if (fade_value + step) > 65535 or (fade_value + step) < 0:
         step *= -1

@@ -680,6 +680,13 @@ class TLC5957(object):
                 print(ftemp.format(field_value=item), end="")
             print("")
 
+    def print_buffer_fc_raw(self):
+        """Print internal function_command buffer content as raw binary."""
+        for chip_index in range(self.chip_count):
+            print("chip {chip_index:>2}: {value:048b}".format(
+                chip_index=chip_index,
+                value=self._get_48bit_value_from_buffer(self._buffer_fc, 0)))
+
     def set_fc_CC(
             self,
             chip_index=0,
