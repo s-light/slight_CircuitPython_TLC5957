@@ -35,7 +35,7 @@ This is easily achieved by downloading
 Usage Example
 =============
 
-have a look at the `examples <https://github.com/s-light/slight_CircuitPython_TLC5957/tree/master/examples>`_ subfolder
+have a look at the `examples <./examples>`_ subfolder
 
 Contributing
 ============
