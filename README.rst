@@ -8,7 +8,7 @@ Introduction
     :alt: Documentation Status
 
 .. image:: https://img.shields.io/discord/327254708534116352.svg
-    :target: https://discord.gg/nBQh6qu
+    :target: https://adafru.it/discord
     :alt: Discord
 
 .. image:: https://travis-ci.org/s-light/slight_CircuitPython_TLC5957.svg?branch=master
