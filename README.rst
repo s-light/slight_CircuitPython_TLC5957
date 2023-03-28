@@ -35,7 +35,7 @@ This is easily achieved by downloading
 Usage Example
 =============
 
-have a look at the `examples <examples.html>`_ subfolder
+have a look at the `examples <./examples>`_ subfolder
 
 Contributing
 ============
